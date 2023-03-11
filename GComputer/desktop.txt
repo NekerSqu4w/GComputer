@@ -1,0 +1,83 @@
+--@include menu/start_bar.txt
+--@include menu/clock.txt
+--@include menu/task_manager.txt
+
+local start_menu = require("menu/start_bar.txt")
+local clock = require("menu/clock.txt")
+local task_manager = require("menu/task_manager.txt")
+
+function onInit(computer)
+    local data = {}
+
+    computer.GComputer_gui = SFUi:new()
+    computer.GComputer_windows = SFUi.window(Vector(-1, -15), Vector(2048, 2048), "")
+    computer.GComputer_windows.draggable = false
+    computer.GComputer_windows.palette.background = Color(0,0,0,0)
+    computer.GComputer_windows.palette.component = Color(0,0,0,0)
+    
+    computer.Desktop_gui = SFUi:new()
+
+    start_menu.init(computer)
+    clock.init(computer)
+    task_manager.init(computer)
+
+    computer.GComputer_gui:addComponent(computer.GComputer_windows)
+
+    return data
+end
+
+function format_hour(time)
+    return string.format("%02d","" .. time.hour) .. ":" .. string.format("%02d","" .. time.min)
+end
+
+function format_date(time)
+    return string.format("%02d","" .. time.day) .. "/" .. string.format("%02d","" .. time.month) .. "/" .. time.year
+end
+
+
+function on_render(computer,data,w,h)
+    render.setFont(computer.font.bios_font)
+
+    //draw background
+    render.setColor(Color(255,255,255))
+    render.setMaterial(computer.material.background[1])
+    render.drawTexturedRect(0,0,w,h)
+
+    //start bar
+    render.setColor(Color(30,30,30))
+    render.drawRect(0,h-45,w,45)
+
+    render.setFont(computer.font.gui_font)
+    
+    computer.GComputer_gui:render()
+    computer.Desktop_gui:render()
+    
+    start_menu.render(computer,w,h)
+    clock.render(computer,w,h)
+    task_manager.render(computer,w,h)
+    
+    render.setFont(computer.font.bios_font)
+
+    //draw critical error
+    if (computer.ram.usage / computer.ram.max) >= 0.75 then
+        computer.critical_error = true
+        computer.critical_error_message = "Critical ram usage !!"
+    end
+    
+    if (computer.cpu.usage / computer.cpu.max) >= 0.75 then
+        computer.critical_error = true
+        computer.critical_error_message = "Critical cpu usage !!"
+    end
+
+    if computer.critical_error then
+        render.setColor(Color(255,0,0,150))
+        render.drawRect(w-350,30,350,50)
+
+        render.setColor(Color(255,255,255))
+        render.drawSimpleText(w-350 + 15,30+50/2, "" .. computer.critical_error_message,0,1)
+        computer.critical_error = true
+    end
+end
+
+
+return {render=on_render,init=onInit}

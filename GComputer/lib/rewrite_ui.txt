@@ -1,0 +1,146 @@
+
+//rewrite checkbox code
+function SFUi.static.checkbox:render(cursor, action)
+    if self then else return end
+    render.setColor(self.hover and self.palette.contrast or self.palette.component)
+    render.drawRectFast(self.mins.x, self.mins.y, self.size.x, self.size.y)
+
+    render.setColor(self.action.held and self.palette.highlight or self.palette.contrast)
+    render.drawRectOutline(self.mins.x, self.mins.y, self.size.x, self.size.y)
+
+    if self.text != "" and #self.text > 0 then
+        render.setColor(self.action.held and self.palette.highlight or self.palette.foreground)
+        render.drawSimpleText(self.maxs.x + 5, self.center.y, self.text, nil, TEXT_ALIGN.CENTER)
+    end
+    
+    if self.add_draw then
+        self.add_draw(self)
+    end
+
+    if self.action.click then
+        self.checked = not self.checked
+        if self.callback then
+            self.callback(self.checked)
+        end
+    end
+
+    SFUi.component.render(self, cursor, action)
+end
+
+
+//rewrite windows code
+function SFUi.static.window:render(cursor, action)
+    if self then else return end
+    self.barheight = select(2, render.getTextSize(self.title))
+
+    if self.action.click then
+        if self.extrahover.close then
+            if self.callback then
+                self.callback()
+            end
+            if self.closehides then
+                self.visible = false
+            end
+        elseif self.extrahover.bar and self.draggable then
+            self.dragging = true
+        end
+    elseif not self.action.held then
+        self.dragging = false
+    end
+    
+    render.setColor(self.dragging and self.palette.hover or self.palette.component)
+    render.drawRoundedBox(6,self.mins.x-1, self.mins.y-1, self.size.x+2, self.size.y+2)
+
+    render.setColor(self.palette.background)
+    render.drawRoundedBox(6,self.mins.x, self.mins.y, self.size.x, self.size.y)
+
+    render.setColor(self.dragging and self.palette.hover or self.palette.component)
+    render.drawRoundedBox(6,self.mins.x, self.mins.y, self.size.x, self.barheight)
+
+    if self.title != "" and #self.title > 0 then
+        render.setColor(self.palette.foreground)
+        render.drawSimpleText(self.mins.x + 5, self.mins.y, self.title, TEXT_ALIGN.LEFT, TEXT_ALIGN.TOP)
+    end
+
+    if self.closehides ~= nil then
+        render.setColor((self.dragging or self.extrahover.close) and self.palette.hover or self.palette.component)
+        render.drawRoundedBox(6,self.maxs.x - self.barheight, self.mins.y, self.barheight, self.barheight)
+
+        render.setColor((self.extrahover.close and self.action.held) and self.palette.highlight or self.palette.foreground)
+        render.drawLine(self.maxs.x - self.barheight * 0.75, self.mins.y + self.barheight * 0.25, self.maxs.x - self.barheight * 0.25, self.mins.y + self.barheight * 0.75)
+        render.drawLine(self.maxs.x - self.barheight * 0.75, self.mins.y + self.barheight * 0.75, self.maxs.x - self.barheight * 0.25, self.mins.y + self.barheight * 0.25)
+    end
+    
+    if self.add_draw then
+        self.add_draw(self)
+    end
+
+    if self.dragging and self.drag.delta then
+        self.pos = self.pos + self.drag.delta
+    end
+
+    SFUi.component.render(self, cursor, action)
+end
+
+
+//rewrite list code
+function SFUi.static.list:render(cursor, action)
+    self:updateScroll(cursor)
+    self:updateList(cursor)
+    self.labelheight = select(2, render.getTextSize(self.label))
+
+    render.setColor(self.palette.background)
+    render.drawRectOutline(self.mins.x, self.mins.y, self.size.x, self.size.y)
+
+    for option, item in pairs(self.list.items) do
+        if item.max > self.mins.y and item.min < self.maxs.y then
+            if self.list.action.option == option then
+                render.setColor(self.palette.hover)
+                render.drawRect(self.mins.x, item.min, self.size.x, item.size)
+            elseif item.hover then
+                if self.action.click then
+                    self.list.action.option = option
+                elseif not self.action.held then
+                    render.setColor(self.palette.contrast)
+                    render.drawRect(self.mins.x, item.min, self.size.x, item.size)
+                end
+            end
+
+            render.setColor(self.value == option and self.palette.highlight or self.palette.foreground)
+            render.drawSimpleText(self.mins.x + 5, item.min, item.label, item.size)
+        end
+    end
+
+    if self.action.release and self.list.action.option and self.list.action.scrolldist < 0.2 then
+        self.value = self.list.action.option
+        if self.callback then
+            self.callback(self.value)
+        end
+    end
+
+    if not self.action.held then
+        self.list.action.option = nil
+        self.list.action.scrolldist = 0
+    end
+
+    render.setColor(self.palette.background)
+    render.drawRect(self.mins.x, self.mins.y - self.labelheight, self.size.x, self.labelheight)
+    render.drawRect(self.mins.x, self.maxs.y, self.size.x, self.labelheight)
+
+    local scrollheight = (self.size.y / self.list.length) * self.size.y
+    if scrollheight < self.size.y then
+        render.setColor(self.palette.component)
+        render.drawRoundedBox(6,self.maxs.x - self.scrollwidth, self.mins.y, self.scrollwidth, self.size.y)
+
+        render.setColor((self.list.action.scrollheld or self.list.action.scrolldist >= 0.2) and self.palette.highlight or (self.list.action.scrollhover and self.palette.hover or self.palette.contrast))
+        render.drawRoundedBox(6,self.maxs.x - self.scrollwidth, math.remap(self.list.scroll, 0, self.list.length - self.size.y, self.mins.y, self.maxs.y - scrollheight), self.scrollwidth, scrollheight)
+    end
+    
+    render.setColor(self.palette.foreground)
+    render.drawSimpleText(self.mins.x + 2, self.mins.y - self.labelheight, self.label)
+
+    render.setColor(self.hover and self.palette.hover or self.palette.contrast)
+    render.drawRectOutline(self.mins.x - 1, self.mins.y - 1, self.size.x + 2, self.size.y + 2)
+
+    SFUi.component.render(self, cursor, action)
+end

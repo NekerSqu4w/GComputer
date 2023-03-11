@@ -1,0 +1,30 @@
+function init(computer)
+    computer.StartBar_menu = SFUi.window(Vector(0, 0), Vector(200, 350), "")
+    computer.StartBar_menu.draggable = false
+    computer.StartBar_menu.visible = false
+    
+    computer.OpenStartMenu = SFUi.checkbox(computer.GComputer_windows, Vector(0,0), Vector(45,45), "", false, function(checked)
+        computer.StartBar_menu.visible = checked
+    end)
+
+    computer.OpenStartMenu.add_draw = function(self)
+        local s = self.size.y-10
+        
+        render.setMaterial(computer.material.bios[1])
+        render.setColor(Color(255,255,255))
+        render.drawTexturedRect(self.pos.x+3,self.pos.y-10,s,s)
+    end
+
+    computer.GComputer_gui:addComponent(computer.StartBar_menu)
+end
+
+function render_menu(computer,w,h)
+    computer.OpenStartMenu.pos = Vector(1,h-45/2-7)
+    computer.StartBar_menu.pos = Vector(0,h-350-45)
+    
+    if computer.OpenStartMenu.checked then
+        computer.OpenStartMenu.hover = true
+    end
+end
+
+return {init=init,render=render_menu}

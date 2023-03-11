@@ -1,0 +1,118 @@
+--@name GComputer
+--@author AstalNeker
+--@model models/props_lab/harddrive02.mdl
+
+//by - Luiz thx to him
+--@include lib/sfui/sfui.lua
+--@include lib/sfui/components/component.lua
+--@include lib/sfui/components/window.lua
+--@include lib/sfui/components/checkbox.lua
+--@include lib/sfui/components/button.lua
+--@include lib/sfui/components/progress.lua
+--@include lib/sfui/components/slider.lua
+--@include lib/sfui/components/label.lua
+--@include lib/sfui/components/list.lua
+--@include lib/sfui/components/radio.lua
+--@include lib/sfui/components/textbox.lua
+
+--@include lib/rewrite_ui.txt
+
+if CLIENT then
+    //import ui lib
+    require("lib/sfui/sfui.lua")
+    require("lib/sfui/components/component.lua")
+    require("lib/sfui/components/window.lua")
+    require("lib/sfui/components/button.lua")
+    require("lib/sfui/components/checkbox.lua")
+    require("lib/sfui/components/progress.lua")
+    require("lib/sfui/components/slider.lua")
+    require("lib/sfui/components/label.lua")
+    require("lib/sfui/components/list.lua")
+    require("lib/sfui/components/radio.lua")
+    require("lib/sfui/components/textbox.lua")
+    
+    require("lib/rewrite_ui.txt")
+    
+    local computer = {}
+    computer.material = {}
+    computer.interface = {}
+    computer.font = {}
+    computer.ram = {}
+    computer.cpu = {}
+    computer.time = {}
+    computer.utc_id = 16
+    computer.app = {}
+
+    computer.critical_error = false
+    computer.critical_error_message = ""
+
+    
+    computer.ClockUTCOffset = {
+        "-12:00","-11:00","-10:00","-09:30","-09:00","-08:00","-07:00","-06:00",
+        "-05:00","-04:00","-03:30","-03:00","-02:00","-01:00","00:00","01:00",
+        "02:00","03:00","03:30","04:00","04:30","05:00","05:30","05:45",
+        "06:00","06:30","07:00","08:00","08:45","09:00","10:00","10:30",
+        "11:00","12:00","12:45","13:00","14:00"
+    }
+
+    function utcOffsetToRealtime(id)
+        local timeInSec = 0
+        local offset = computer.ClockUTCOffset[id]
+        local offsplit = string.split(offset,":")
+
+        if string.sub(offsplit[1],1,2) == "-" then
+            local hour = tonumber(string.sub(offsplit[1],1,#offsplit[1]))
+            local min = tonumber(offsplit[2])
+            timeInSec = -(hour*3600 + min*60)
+        else
+            local hour = tonumber(offsplit[1])
+            local min = tonumber(offsplit[2])
+            timeInSec = hour*3600 + min*60
+        end
+
+        return timeInSec
+    end
+    
+    
+
+    --@include bios_loader.txt
+    computer.interface.bios = require("bios_loader.txt")
+
+    --@include desktop.txt
+    computer.interface.desktop = require("desktop.txt")
+
+    local last_interface = ""
+    function load_interface(name)
+        if computer.interface[name].init then
+            computer.interface[name].init_data = computer.interface[name].init(computer)
+        end
+
+        hook.remove("render",last_interface)
+        hook.add("render",name,function()
+            local w,h = render.getResolution()
+            render.setFont(computer.font.bios_font)
+
+            computer.ram.usage = math.round(ramUsed(),2)
+            computer.ram.max = math.round(ramMax(),2)
+            
+            computer.cpu.usage = math.round(cpuAverage()*1000000,2)
+            computer.cpu.max = math.round(cpuMax()*1000000,2)
+
+            computer.time = os.date("*t",os.time())
+
+            computer.time.realtime = os.time() + utcOffsetToRealtime(computer.utc_id)
+            computer.time.sec = computer.time.realtime%60
+            computer.time.min = ((computer.time.realtime/60)%60)
+            computer.time.hour = ((computer.time.realtime/3600)%24)
+
+            if computer.interface[name].render then
+                computer.interface[name].render(computer,computer.interface[name].init_data,w,h)
+            else
+                render.drawSimpleText(w/2,h/2,"No render thing was added for '" .. name .. "'",1,1)
+            end
+        end)
+        last_interface = name
+    end
+    
+    load_interface("bios")
+end

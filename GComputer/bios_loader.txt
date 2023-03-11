@@ -1,0 +1,41 @@
+function onInit(computer)
+    local data = {}
+    data.loaded = 0
+    data.bios_config = [[
+GComputer, Neker's Company
+Fartus BIOS(C) 2023, Neker's Company
+Powered by 'Farting Chipset'
+
+]]
+
+    computer.material.background = {}
+    computer.material.bios = {}
+    computer.material.background[1] = material.load("console/background04_widescreen")
+        
+    computer.material.bios[1] = material.load("expression 2/cog")
+
+    computer.material.task_manager = material.load("vgui/steam/games/icon_dod")
+    
+    computer.font.bios_font = render.createFont("FontAwesome",20,600,true,false,false,false,0,false,0)
+    computer.font.gui_font = render.createFont("FontAwesome",15,600,true,false,false,false,0,false,0)
+
+    timer.simple(1,function()
+        load_interface("desktop")
+    end)
+
+    return data
+end
+
+
+function on_render(computer,data,w,h)
+    render.setColor(Color(255,255,255))
+    render.drawText(10,10, "" .. data.bios_config)
+
+    render.setMaterial(computer.material.bios[1])
+    render.setColor(Color(255,100,100,50))
+    render.drawTexturedRectRotated(w - 256,h/2,400,400,-timer.curtime()*20)
+    render.drawTexturedRectRotated(w - 256+290,h/2+230,400,400,-5 + timer.curtime()*20)
+end
+
+
+return {render=on_render,init=onInit}
