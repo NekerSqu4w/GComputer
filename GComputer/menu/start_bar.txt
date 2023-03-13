@@ -8,11 +8,8 @@ function init(computer)
     end)
 
     computer.OpenStartMenu.add_draw = function(self)
-        local s = self.size.y-10
-        
-        render.setMaterial(computer.material.bios[1])
-        render.setColor(Color(255,255,255))
-        render.drawTexturedRect(self.pos.x+3,self.pos.y-10,s,s)
+        render.setColor(computer.main_color)
+        computer.func.star(self.mins.x + self.size.x/2,self.mins.y + self.size.y/2,self.size.y-25,0)
     end
 
     computer.GComputer_gui:addComponent(computer.StartBar_menu)

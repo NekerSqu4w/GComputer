@@ -10,19 +10,19 @@ function init(computer)
             i = i + 1
             
             render.setColor(Color(255,255,255))
-            render.drawRect(self.pos.x + 4 + 40,self.pos.y + 4 + 15 - 40 + i * 40,256,30)
+            render.drawRect(self.mins.x + 4 + 40,self.mins.y + 4 + 15 - 40 + i * 40,256,30)
 
-            render.setColor(Color(255,100,100))
-            render.drawRect(self.pos.x + 4 + 40,self.pos.y + 4 + 15 - 40 + i * 40,(info.us/info.max) * 256,30)
-            render.drawSimpleText(self.pos.x + 10,self.pos.y + 4 + 15 - 25 + i * 40,id .. ":",0,1)
+            render.setColor(computer.main_color)
+            render.drawRect(self.mins.x + 4 + 40,self.mins.y + 4 + 15 - 40 + i * 40,(info.us/info.max) * 256,30)
+            render.drawSimpleText(self.mins.x + 10,self.mins.y + 4 + 15 - 25 + i * 40,id .. ":",0,1)
 
             render.setColor(Color(0,0,0))
-            render.drawSimpleText(self.pos.x + 10 + 40,self.pos.y + 4 + 15 - 25 + i * 40,""..math.round((info.us/info.max)*100) .. "% " .. info.suffix,0,1)
+            render.drawSimpleText(self.mins.x + 10 + 40,self.mins.y + 4 + 15 - 25 + i * 40,""..math.round((info.us/info.max)*100) .. "% " .. info.suffix,0,1)
         end
         
 
         render.setColor(Color(255,255,255))
-        render.drawSimpleText(self.pos.x + 4 + 80 + 256,self.pos.y + 4 + 20,"Manage app:",0,1)
+        render.drawSimpleText(self.mins.x + 4 + 80 + 256,self.mins.y + 4 + 20,"Manage app:",0,1)
 
         local i = 0
         for id, app in pairs(computer.app) do
@@ -36,10 +36,10 @@ function init(computer)
             if app.visible then
                 i = i + 1
                 render.setColor(Color(255,255,255))
-                render.drawRect(self.pos.x + 4 + 70 + 256,self.pos.y + 4 + 10 + i * 25,256-80,20)
+                render.drawRect(self.mins.x + 4 + 70 + 256,self.mins.y + 4 + 10 + i * 25,256-80,20)
                 
                 render.setColor(Color(0,0,0))
-                render.drawSimpleText(self.pos.x + 4 + 80 + 256,self.pos.y + 4 + 20 + i * 25,app.title,0,1)
+                render.drawSimpleText(self.mins.x + 4 + 80 + 256,self.mins.y + 4 + 20 + i * 25,app.title,0,1)
             end
 
             self.end_task_button[id].visible = app.visible

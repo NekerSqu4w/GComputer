@@ -1,3 +1,19 @@
+
+function star(x,y,size,add_ang)
+    local number_of_spikes = 10
+    local angle = math.pi * 2 / number_of_spikes
+    local star = {}
+    local radius = size
+    for i=0, number_of_spikes do
+        local x2 = radius * math.cos(add_ang + angle * i)
+        local y2 = radius * math.sin(add_ang + angle * i)
+        star[i] = {x=x + x2,y=y + y2}
+        radius = radius == size and size/2 or size
+    end
+    render.setMaterial()
+    render.drawPoly(star)
+end
+
 function onInit(computer)
     local data = {}
     data.loaded = 0
@@ -10,11 +26,12 @@ Powered by 'Farting Chipset'
 
     computer.material.background = {}
     computer.material.bios = {}
-    computer.material.background[1] = material.load("console/background04_widescreen")
-        
-    computer.material.bios[1] = material.load("expression 2/cog")
+    computer.func = {}
 
+    computer.material.background[1] = material.load("console/background04_widescreen")
     computer.material.task_manager = material.load("vgui/steam/games/icon_dod")
+    
+    computer.func.star = star
     
     computer.font.bios_font = render.createFont("FontAwesome",20,600,true,false,false,false,0,false,0)
     computer.font.gui_font = render.createFont("FontAwesome",15,600,true,false,false,false,0,false,0)
@@ -26,15 +43,15 @@ Powered by 'Farting Chipset'
     return data
 end
 
-
 function on_render(computer,data,w,h)
     render.setColor(Color(255,255,255))
     render.drawText(10,10, "" .. data.bios_config)
 
-    render.setMaterial(computer.material.bios[1])
-    render.setColor(Color(255,100,100,50))
-    render.drawTexturedRectRotated(w - 256,h/2,400,400,-timer.curtime()*20)
-    render.drawTexturedRectRotated(w - 256+290,h/2+230,400,400,-5 + timer.curtime()*20)
+    render.setColor(computer.main_color)
+    computer.func.star(w - 256,h/2,180,-timer.curtime()*0.8)
+    
+    render.setColor((computer.main_color/1.5):setA(255))
+    computer.func.star(w - 256+200,h/2+230,300,timer.curtime()*0.4)
 end
 
 

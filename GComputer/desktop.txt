@@ -44,7 +44,7 @@ function on_render(computer,data,w,h)
     render.drawTexturedRect(0,0,w,h)
 
     //start bar
-    render.setColor(Color(30,30,30))
+    render.setColor((computer.main_color/4):setA(255))
     render.drawRect(0,h-45,w,45)
 
     render.setFont(computer.font.gui_font)

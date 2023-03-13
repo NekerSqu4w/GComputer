@@ -30,10 +30,11 @@ if CLIENT then
     require("lib/sfui/components/list.lua")
     require("lib/sfui/components/radio.lua")
     require("lib/sfui/components/textbox.lua")
-    
+
     require("lib/rewrite_ui.txt")
-    
-    local computer = {}
+
+    computer = {}
+    computer.main_color = Color(50, 200, 255)
     computer.material = {}
     computer.interface = {}
     computer.font = {}
@@ -46,6 +47,15 @@ if CLIENT then
     computer.critical_error = false
     computer.critical_error_message = ""
 
+    
+    SFUi.static.palette = {
+        foreground = Color(255, 255, 255),
+        background = Color(30, 30, 30),
+        hover = computer.main_color,
+        component = (computer.main_color/2):setA(255),
+        contrast = (computer.main_color/2):setA(255),
+        highlight = computer.main_color
+    }
     
     computer.ClockUTCOffset = {
         "-12:00","-11:00","-10:00","-09:30","-09:00","-08:00","-07:00","-06:00",
