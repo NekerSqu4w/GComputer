@@ -1,27 +1,128 @@
---@include menu/start_bar.txt
---@include menu/clock.txt
---@include menu/task_manager.txt
+--@includedir app
 
-local start_menu = require("menu/start_bar.txt")
-local clock = require("menu/clock.txt")
-local task_manager = require("menu/task_manager.txt")
+function computer.open_app(app_path)
+    local already_created = false
+    
+    //prevent from rewriting the load data of an app
+    local current_app_metadata = table.copy(computer.app[app_path])
+    --for id, data in pairs(computer.app[app_path]) do current_app_metadata[id] = data end
+
+    //used to check if an app already exist
+    if current_app_metadata.multiple_open == false then
+        for id, app in pairs(computer.created_app) do
+            if current_app_metadata.app_id == app.app.app_id then
+                already_created = true
+                break
+            end
+        end
+    end
+
+    //if doesn't exist doesn't create it
+    if already_created == false and current_app_metadata then
+        local new_app = SFUi.window(current_app_metadata.pos, current_app_metadata.size, current_app_metadata.title, true, false, function(me)
+            computer.GComputer_gui:removeComponent(me)
+        end)
+
+        local show_closebtn = current_app_metadata.close_btn
+        if show_closebtn == false then show_closebtn = nil end
+
+        new_app.resizable = current_app_metadata.resizable
+        new_app.minimum_size = current_app_metadata.minimum_size
+        new_app.maximum_size = current_app_metadata.maximum_size
+        new_app.draggable = current_app_metadata.draggable
+        new_app.closehides = show_closebtn
+        new_app.add_draw = current_app_metadata.add_render
+        new_app.app = current_app_metadata
+        new_app.lastclicked = timer.realtime()
+
+        current_app_metadata.on_load(new_app,new_app.app)
+
+        computer.GComputer_gui:addComponent(new_app)
+
+        return new_app
+    end
+end
+
+function desktop_btn(self,cursor,action)
+    if self.hover then
+        render.setColor(Color(255,255,255,50))
+        render.drawRoundedBox(6,self.mins.x, self.mins.y, self.size.x, self.size.y)
+    end 
+end
+
+function reload_desktop_app()
+    computer.desktop_app = {}
+
+    for id, btn in pairs(computer.appbar_win.children) do
+        if btn.id == "desktop_app" then
+            table.remove(computer.appbar_win.children,id)
+        end
+    end
+
+    local remove = {["gcomputer_startbar"]=true}
+    for id, capp in pairs(computer.app) do
+        if remove[capp.app_id] then
+        else
+            computer.desktop_app[id] = SFUi.button(computer.appbar_win, Vector(0,0), Vector(80, 80), "", function(me) computer.open_app(id) end)
+            computer.desktop_app[id].id = "desktop_app"
+            computer.desktop_app[id].id_name = capp.title
+            computer.desktop_app[id].app = capp
+            computer.desktop_app[id].custom_design = desktop_btn
+            computer.desktop_app[id].add_draw = function(btn,app,x,y,w,h)
+                app.app_logo(app,x+20,y+20,w-40,h-40)
+
+                render.setColor(Color(255,255,255))
+                render.drawSimpleText(x + w/2, y + h - 20, btn.id_name, TEXT_ALIGN.CENTER, TEXT_ALIGN.TOP)
+            end
+        end
+    end
+end
 
 function onInit(computer)
     local data = {}
+    computer.app = requiredir("app")
 
     computer.GComputer_gui = SFUi:new()
-    computer.GComputer_windows = SFUi.window(Vector(-1, -15), Vector(2048, 2048), "")
-    computer.GComputer_windows.draggable = false
-    computer.GComputer_windows.palette.background = Color(0,0,0,0)
-    computer.GComputer_windows.palette.component = Color(0,0,0,0)
-    
-    computer.Desktop_gui = SFUi:new()
+    computer.appbar_gui = SFUi:new()
 
-    start_menu.init(computer)
-    clock.init(computer)
-    task_manager.init(computer)
+    computer.appbar_win = SFUi.window(Vector(0,0), Vector(0,0), "", false, nil)
+    computer.appbar_win.draggable = false
+    computer.appbar_win.show_background = false
+    computer.appbar_gui:addComponent(computer.appbar_win)
 
-    computer.GComputer_gui:addComponent(computer.GComputer_windows)
+    computer.open_startbar = SFUi.button(computer.appbar_win,Vector(0, 0), Vector(45, 45), "",function()
+        if computer.start_bar then
+            computer.GComputer_gui:removeComponent(computer.start_bar)
+            computer.start_bar = nil
+        else
+            computer.start_bar = computer.open_app("gcomputer/app/start_bar.txt")
+        end
+    end)
+    function computer.open_startbar:render(cursor, action)
+        render.setColor(self.action.held and self.palette.highlight or self.palette.contrast)
+        another_render.roundedBoxEx(self.mins.x, self.mins.y, self.size.x, self.size.y, 0, 6, 0, 0)
+        render.setColor(self.hover and self.palette.contrast or self.palette.component)
+        another_render.roundedBoxEx(self.mins.x+1, self.mins.y+1, self.size.x-2, self.size.y-2, 0, 5, 0, 0)
+        if self.action.click and self.callback then
+            self.callback()
+        end
+        SFUi.component.render(self, cursor, action)
+    end
+
+    computer.open_clock = SFUi.button(computer.appbar_win,Vector(0, 0), Vector(120, 45), "",function() computer.open_app("gcomputer/app/clock.txt") end)
+    function computer.open_clock:render(cursor, action)
+        render.setColor(self.action.held and self.palette.highlight or self.palette.contrast)
+        another_render.roundedBoxEx(self.mins.x, self.mins.y, self.size.x, self.size.y, 6, 0, 0, 0)
+        render.setColor(self.hover and self.palette.contrast or self.palette.component)
+        another_render.roundedBoxEx(self.mins.x+1, self.mins.y+1, self.size.x-2, self.size.y-2, 5, 0, 0, 0)
+        if self.action.click and self.callback then
+            self.callback()
+        end
+        SFUi.component.render(self, cursor, action)
+    end
+
+    computer.desktop_app = {}
+    reload_desktop_app()
 
     return data
 end
@@ -34,30 +135,57 @@ function format_date(time)
     return string.format("%02d","" .. time.day) .. "/" .. string.format("%02d","" .. time.month) .. "/" .. time.year
 end
 
-
 function on_render(computer,data,w,h)
+    local isHUD = not render.getScreenEntity()
+    computer.cursor.x, computer.cursor.y = isHUD and {input.getCursorPos()} or {render.cursorPos()}
+    computer.created_app = computer.GComputer_gui.components
+
+    computer.appbar_win.pos = Vector(0,0)
+    computer.appbar_win.size = Vector(w,h)
+    
+    computer.open_startbar.pos = Vector(0,h-computer.open_startbar.size.y)
+    computer.open_clock.pos = Vector(w-computer.open_clock.size.x,h-computer.open_clock.size.y)
+
+    local x,y = 0,-1
+    for id, app in pairs(computer.desktop_app) do
+        y = y + 1
+        if y >= 4 then
+            x = x + 1
+            y = 0
+        end
+        app.pos = Vector(20 + x * (app.size.y+20),20 + y * (app.size.y+20)) 
+    end
+
     render.setFont(computer.font.bios_font)
 
     //draw background
+    local back_size = w
+    if h>w then back_size = h end
+    
     render.setColor(Color(255,255,255))
-    render.setMaterial(computer.material.background[1])
-    render.drawTexturedRect(0,0,w,h)
+    render.setMaterial(computer.material.background[computer.use_background])
+    render.drawTexturedRect(0,-back_size/4,back_size,back_size)
 
-    //start bar
-    render.setColor((computer.main_color/4):setA(255))
+    //task bar
+    render.setColor((computer.current_theme.main_color/4):setA(255))
     render.drawRect(0,h-45,w,45)
 
     render.setFont(computer.font.gui_font)
-    
+
+    computer.appbar_gui:render()
     computer.GComputer_gui:render()
-    computer.Desktop_gui:render()
     
-    start_menu.render(computer,w,h)
-    clock.render(computer,w,h)
-    task_manager.render(computer,w,h)
+    local startbar_metadata = computer.app["gcomputer/app/start_bar.txt"]
+    if startbar_metadata and computer.open_startbar then
+        startbar_metadata.app_logo(startbar_metadata,computer.open_startbar.mins.x+5,computer.open_startbar.mins.y+5,computer.open_startbar.size.x-10,computer.open_startbar.size.y-10)
+    end
+    
+    //draw time on clock button
+    render.setColor(Color(255,255,255))
+    render.drawSimpleText(computer.open_clock.mins.x + computer.open_clock.size.x - 15,computer.open_clock.mins.y + computer.open_clock.size.y - 45/2-10, "" .. format_hour(computer.time),2,1)
+    render.drawSimpleText(computer.open_clock.mins.x + computer.open_clock.size.x - 15,computer.open_clock.mins.y + computer.open_clock.size.y - 45/2+8, "" .. format_date(computer.time),2,1)
     
     render.setFont(computer.font.bios_font)
-
     //draw critical error
     if (computer.ram.usage / computer.ram.max) >= 0.75 then
         computer.critical_error = true
@@ -77,7 +205,11 @@ function on_render(computer,data,w,h)
         render.drawSimpleText(w-350 + 15,30+50/2, "" .. computer.critical_error_message,0,1)
         computer.critical_error = true
     end
-end
 
+    if computer.cursor.x and computer.cursor.y then
+        render.setColor(Color(255,255,255))
+        computer.drawMouse(computer.cursor.x, computer.cursor.y)
+    end
+end
 
 return {render=on_render,init=onInit}

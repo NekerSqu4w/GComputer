@@ -15,7 +15,8 @@
 --@include lib/sfui/components/radio.lua
 --@include lib/sfui/components/textbox.lua
 
---@include lib/rewrite_ui.txt
+--@includedir theme
+--@include lib/another_render.txt
 
 if CLIENT then
     //import ui lib
@@ -30,34 +31,34 @@ if CLIENT then
     require("lib/sfui/components/list.lua")
     require("lib/sfui/components/radio.lua")
     require("lib/sfui/components/textbox.lua")
-
-    require("lib/rewrite_ui.txt")
+    
+    another_render = require("lib/another_render.txt")
 
     computer = {}
-    computer.main_color = Color(50, 200, 255)
+    computer.settings = {}
     computer.material = {}
     computer.interface = {}
     computer.font = {}
     computer.ram = {}
     computer.cpu = {}
     computer.time = {}
-    computer.utc_id = 16
+    computer.clock = {}
+    computer.cursor = {}
+
+    computer.use_background = 1
+    computer.resolution = Vector(512,512)
     computer.app = {}
+    computer.created_app = {}
+    
+    computer.theme = requiredir("theme")
+    computer.use_theme = "gcomputer/theme/theme1.txt"
+    computer.current_theme = computer.theme[computer.use_theme].use()
 
     computer.critical_error = false
     computer.critical_error_message = ""
-
     
-    SFUi.static.palette = {
-        foreground = Color(255, 255, 255),
-        background = Color(30, 30, 30),
-        hover = computer.main_color,
-        component = (computer.main_color/2):setA(255),
-        contrast = (computer.main_color/2):setA(255),
-        highlight = computer.main_color
-    }
-    
-    computer.ClockUTCOffset = {
+    computer.clock.utc_id = 16
+    computer.clock.ClockUTCOffset = {
         "-12:00","-11:00","-10:00","-09:30","-09:00","-08:00","-07:00","-06:00",
         "-05:00","-04:00","-03:30","-03:00","-02:00","-01:00","00:00","01:00",
         "02:00","03:00","03:30","04:00","04:30","05:00","05:30","05:45",
@@ -67,7 +68,7 @@ if CLIENT then
 
     function utcOffsetToRealtime(id)
         local timeInSec = 0
-        local offset = computer.ClockUTCOffset[id]
+        local offset = computer.clock.ClockUTCOffset[id]
         local offsplit = string.split(offset,":")
 
         if string.sub(offsplit[1],1,2) == "-" then
@@ -82,14 +83,42 @@ if CLIENT then
 
         return timeInSec
     end
-    
-    
+
+    local cursor = {
+        {x=0, y=0},
+        {x=3, y=2},
+        {x=1.1, y=2},
+        {x=2.1, y=3.9},
+        {x=1.9, y=4},
+        {x=0.9, y=2.1},
+        {x=0.1, y=4},
+    }
+        
+    function getMouse(curX, curY, scale)
+        local copyMouse = table.copy(cursor)
+            
+        for i=1, #copyMouse do
+            copyMouse[i].x = copyMouse[i].x*scale + curX
+            copyMouse[i].y = copyMouse[i].y*scale + curY
+        end
+        return copyMouse
+    end
+        
+    function computer.drawMouse(curX, curY)
+        render.setRenderTargetTexture()
+        
+        copyMouse = getMouse(curX, curY, 4)
+        render.drawPoly(copyMouse)
+    end
 
     --@include bios_loader.txt
     computer.interface.bios = require("bios_loader.txt")
 
     --@include desktop.txt
     computer.interface.desktop = require("desktop.txt")
+    
+    --@include debug.txt
+    computer.interface.debug = require("debug.txt")
 
     local last_interface = ""
     function load_interface(name)
@@ -100,6 +129,9 @@ if CLIENT then
         hook.remove("render",last_interface)
         hook.add("render",name,function()
             local w,h = render.getResolution()
+            computer.resolution = Vector(w,h)
+            if computer.current_theme.update then computer.current_theme.update() end
+            
             render.setFont(computer.font.bios_font)
 
             computer.ram.usage = math.round(ramUsed(),2)
@@ -110,7 +142,7 @@ if CLIENT then
 
             computer.time = os.date("*t",os.time())
 
-            computer.time.realtime = os.time() + utcOffsetToRealtime(computer.utc_id)
+            computer.time.realtime = os.time() + utcOffsetToRealtime(computer.clock.utc_id)
             computer.time.sec = computer.time.realtime%60
             computer.time.min = ((computer.time.realtime/60)%60)
             computer.time.hour = ((computer.time.realtime/3600)%24)
@@ -123,6 +155,7 @@ if CLIENT then
         end)
         last_interface = name
     end
-    
+
     load_interface("bios")
+    --load_interface("debug")
 end

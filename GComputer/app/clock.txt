@@ -1,0 +1,67 @@
+local app = {}
+
+app.title = "Clock"
+app.version = 1.0
+app.author = "Neker's Company"
+app.description = "Show clock"
+
+app.pos = Vector(0,0)
+app.size = Vector(400, 256)
+app.minimum_size = Vector(400, 256)
+app.maximum_size = Vector(400, 256)
+
+app.draggable = true
+app.close_btn = true
+app.resizable = false
+
+app.multiple_open = true
+app.app_id = "gcomputer_clock"
+
+app.on_load = function(window,app)
+    window.list = SFUi.list(window, Vector(240, 40), Vector(150, 256-80), "UTC:", computer.clock.ClockUTCOffset, function(choose_utc) computer.clock.utc_id = choose_utc end)
+    window.list.value = computer.clock.utc_id
+
+    window.pos = Vector(computer.resolution.x-app.size.x-15,computer.resolution.y-app.size.y-15-45)
+end
+
+app.app_logo = function(app,x,y,w,h)
+    render.setFilterMag(1)
+    render.setFilterMin(1)
+
+    render.setColor(Color(255,255,255))
+    render.setMaterial(computer.icon["time"])
+    render.drawTexturedRect(x,y,w,h)
+    render.setMaterial()
+
+    render.setFilterMag(3)
+    render.setFilterMin(3)
+end
+    
+//use only if you need to draw another thing that not in SFUi lib
+//Like a simple rect, roundedbox or polygon etc..
+app.add_render = function(window,app,x,y,w,h)
+    //draw clock
+    local clock_pos = window.pos:clone()
+    clock_pos.x = clock_pos.x + 120
+    clock_pos.y = clock_pos.y + window.size.y/2
+    
+    render.setColor(Color(120,120,120))
+    render.setMaterial(nil)
+    render.drawFilledCircle(clock_pos.x,clock_pos.y,80)
+    
+    render.setColor(Color(255,255,255))
+    for i=1, 12 do
+        local theta = (i/12) * (math.pi*2)
+        render.drawLine(clock_pos.x + math.cos(theta) * 80,clock_pos.y + math.sin(theta) * 80,clock_pos.x + math.cos(theta) * 70,clock_pos.y + math.sin(theta) * 70)
+        render.drawSimpleText(clock_pos.x + math.cos(-math.pi/2 + theta) * 90,clock_pos.y + math.sin(-math.pi/2 + theta) * 90,""..i,1,1)
+    end
+            
+    render.setColor(Color(255,0,0))
+    render.drawLine(clock_pos.x,clock_pos.y,clock_pos.x + math.cos(-math.pi/2 + (computer.time.sec/60)*(math.pi*2)) * 75,clock_pos.y + math.sin(-math.pi/2 + (computer.time.sec/60)*(math.pi*2)) * 75)
+
+    render.setColor(Color(255,255,255))
+    render.drawLine(clock_pos.x,clock_pos.y,clock_pos.x + math.cos(-math.pi/2 + (computer.time.min/60)*(math.pi*2)) * 60,clock_pos.y + math.sin(-math.pi/2 + (computer.time.min/60)*(math.pi*2)) * 60)
+    render.drawLine(clock_pos.x,clock_pos.y,clock_pos.x + math.cos(-math.pi/2 + (computer.time.hour/12)*(math.pi*2)) * 40,clock_pos.y + math.sin(-math.pi/2 + (computer.time.hour/12)*(math.pi*2)) * 40)
+end
+    
+return app
