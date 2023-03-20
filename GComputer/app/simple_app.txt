@@ -2,7 +2,7 @@ local app = {}
 
 app.title = "ui design"
 app.version = 1.0
-app.author = "Neker's Company"
+app.author = "Neker's Industry's"
 app.description = "An app to show an ui components"
 
 app.pos = Vector(60,60)

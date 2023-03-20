@@ -2,7 +2,7 @@ local app = {}
 
 app.title = "Task manager"
 app.version = 1.0
-app.author = "Neker's Company"
+app.author = "Neker's Industry's"
 app.description = "Manage application and manage cpu usage"
 
 app.pos = Vector(10,10)

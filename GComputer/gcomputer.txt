@@ -16,7 +16,10 @@
 --@include lib/sfui/components/textbox.lua
 
 --@includedir theme
+
 --@include lib/another_render.txt
+--@include lib/multiple_screen.lua
+--@include lib/console.txt
 
 if CLIENT then
     //import ui lib
@@ -31,8 +34,10 @@ if CLIENT then
     require("lib/sfui/components/list.lua")
     require("lib/sfui/components/radio.lua")
     require("lib/sfui/components/textbox.lua")
-    
+
     another_render = require("lib/another_render.txt")
+    local msl = require("lib/multiple_screen.lua")
+    console = require("lib/console.txt")
 
     computer = {}
     computer.settings = {}
@@ -49,9 +54,9 @@ if CLIENT then
     computer.resolution = Vector(512,512)
     computer.app = {}
     computer.created_app = {}
-    
+
     computer.theme = requiredir("theme")
-    computer.use_theme = "gcomputer/theme/theme1.txt"
+    computer.use_theme = "gcomputer/theme/original.txt"
     computer.current_theme = computer.theme[computer.use_theme].use()
 
     computer.critical_error = false
@@ -96,7 +101,7 @@ if CLIENT then
         
     function getMouse(curX, curY, scale)
         local copyMouse = table.copy(cursor)
-            
+
         for i=1, #copyMouse do
             copyMouse[i].x = copyMouse[i].x*scale + curX
             copyMouse[i].y = copyMouse[i].y*scale + curY
@@ -127,13 +132,12 @@ if CLIENT then
         end
 
         hook.remove("render",last_interface)
+        hook.remove("ms_render1",last_interface)
+        hook.remove("ms_render2",last_interface)
         hook.add("render",name,function()
-            local w,h = render.getResolution()
-            computer.resolution = Vector(w,h)
+            msl.update(true) //msl.update(show_id)
             if computer.current_theme.update then computer.current_theme.update() end
             
-            render.setFont(computer.font.bios_font)
-
             computer.ram.usage = math.round(ramUsed(),2)
             computer.ram.max = math.round(ramMax(),2)
             
@@ -146,13 +150,57 @@ if CLIENT then
             computer.time.sec = computer.time.realtime%60
             computer.time.min = ((computer.time.realtime/60)%60)
             computer.time.hour = ((computer.time.realtime/3600)%24)
+        end)
+        
+        hook.add("ms_render1",name,function()
+            local w,h = render.getResolution()
+            computer.resolution = Vector(w,h)
 
+            render.setFont(computer.font.bios_font)
             if computer.interface[name].render then
                 computer.interface[name].render(computer,computer.interface[name].init_data,w,h)
             else
                 render.drawSimpleText(w/2,h/2,"No render thing was added for '" .. name .. "'",1,1)
             end
         end)
+
+        hook.add("console_log","",function(log) end)
+        hook.add("console_error","",function(error) end)
+        hook.add("console_clear","",function() end)
+
+        hook.add("ms_render2",name,function()
+            render.setFont(computer.font.bios_font)
+            --[[
+            render.setColor(Color(255,255,255))
+            for i=1, #computer.material.background do
+                render.setMaterial(computer.material.background[i])
+                render.drawTexturedRect(-80 + i*80,80,80,80)
+            end
+            render.setMaterial()
+            ]]
+
+            local cur_color = Color(255,255,255)
+            local move = -1
+            for key, line in pairs(console.log_data) do
+                move = move + 1
+                if type(line) == "table" then
+                    local next_width = 0
+                    for key, data in pairs(line) do
+                        if type(data) == "Color" then cur_color = data else
+                            local add_width = render.getTextSize(tostring(data))
+
+                            render.setColor(cur_color)
+                            render.drawText(5 + next_width,move * 15,tostring(data))
+                            next_width = next_width + add_width
+                        end
+                    end
+                else
+                    render.setColor(Color(255,255,255))
+                    render.drawText(5,move * 15,tostring(line))
+                end
+            end
+        end)
+        
         last_interface = name
     end
 

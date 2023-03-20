@@ -2,7 +2,7 @@
 local theme = {}
 
 //set informations
-theme.name = "Classic"
+theme.name = "Original"
 theme.main_color = Color(50, 200, 255)
 
 //called when theme is use
@@ -19,30 +19,10 @@ function init()
         highlight = theme.main_color
     }
     
-    
-    //stencil function to crop anything i want
-    function stencil_mask()
-        render.setStencilWriteMask(0xFF)
-        render.setStencilTestMask(0xFF)
-        render.setStencilReferenceValue(1)
-        render.setStencilCompareFunction(3)
-        render.setStencilPassOperation(STENCIL.REPLACE)
-        render.setStencilFailOperation(STENCIL.REPLACE)
-        render.setStencilZFailOperation(STENCIL.REPLACE)
-        render.clearStencil()
-    
-        render.setStencilEnable(true)
-        render.setStencilReferenceValue(1)
-        render.setStencilCompareFunction(STENCIL.REPLACE)
-    end
-        
-    function stencil_pop()
-        render.setStencilEnable(false)
-    end
-    
     //rewrite windows code    
     if not render.renderTargetExists("GComputer_backblur") then render.createRenderTarget("GComputer_backblur") end
     function theme.update()
+        --[[
         render.selectRenderTarget("GComputer_backblur")
         render.clear(Color(0,0,0,0))
 
@@ -51,7 +31,8 @@ function init()
         render.drawTexturedRect(0,0,1024,1024)
 
         render.drawBlurEffect(8,8,1)
-        render.selectRenderTarget(nil) 
+        render.selectRenderTarget(nil)
+        ]]
     end
 
     function ui.window:render(cursor, action)
@@ -65,7 +46,7 @@ function init()
         if cursor then
             self.resize_hover = cursor:withinAABox(self.maxs - Vector(self.barheight,self.barheight), self.maxs)
         end
-    
+
         if self.action.click then
             if self.resize_hover and self.resizable then
                 self.hold_at = self.size - cursor
@@ -96,23 +77,26 @@ function init()
         if self.show_background == nil then self.show_background = true end
         if self.show_background then
             render.setColor(self.dragging and self.palette.hover or self.palette.component)
-            another_render.roundedBox(self.mins.x-1, self.mins.y-1, self.size.x+2, self.size.y+2, 6)
+            render.drawRect(self.mins.x-1, self.mins.y-1, self.size.x+2, self.size.y+2)
         
             render.setColor(self.palette.background)
-            another_render.roundedBox(self.mins.x, self.mins.y, self.size.x, self.size.y, 5)
+            render.drawRect(self.mins.x, self.mins.y, self.size.x, self.size.y)
 
-            render.setColor(self.palette.background)
-            render.setRenderTargetTexture("GComputer_backblur")
-            render.drawTexturedRect(self.mins.x + 2,self.mins.y + 2,self.size.x - 4,self.size.y - 4)
+            --self.back_size = self.size.x
+            --if self.size.y < self.back_size then self.back_size = self.size.y end
+
+            --render.setColor(self.palette.background)
+            --render.setRenderTargetTexture("GComputer_backblur")
+            --render.drawTexturedRect(self.mins.x + self.size.x/2 - self.back_size/2,self.mins.y + self.size.y/2 - self.back_size/2,self.back_size,self.back_size)
         end
         
         if self.add_draw then
-            self.add_draw(self,self.app,self.mins.x,self.mins.y,self.size.x,self.size.y)
+            self.add_draw(self,self.app,self.mins.x,self.mins.y+self.barheight,self.size.x,self.size.y-self.barheight)
         end
 
         if self.draggable or #self.title > 0 then
             render.setColor(self.dragging and self.palette.hover or self.palette.component)
-            another_render.roundedBoxEx(self.mins.x, self.mins.y, self.size.x, self.barheight, 5, 5, 0, 0)
+            render.drawRect(self.mins.x, self.mins.y, self.size.x, self.barheight)
         end
 
         if self.title != "" and #self.title > 0 then
@@ -125,7 +109,7 @@ function init()
     
         if self.closehides ~= nil then
             render.setColor(self.extrahover.close and Color(255,70,70) or self.palette.component)
-            another_render.roundedBoxEx(self.mins.x + self.size.x - self.barheight, self.mins.y, self.barheight, self.barheight, 0, 5, 0, 0)
+            render.drawRect(self.mins.x + self.size.x - self.barheight, self.mins.y, self.barheight, self.barheight)
     
             render.setColor((self.extrahover.close and self.action.held) and self.palette.highlight or self.palette.foreground)
             render.drawLine(self.mins.x + self.size.x - self.barheight * 0.75, self.mins.y + self.barheight * 0.25, self.mins.x + self.size.x - self.barheight * 0.25, self.mins.y + self.barheight * 0.75)
@@ -134,9 +118,9 @@ function init()
 
         if self.resizable then
             render.setColor((self.resize_hover or self.hold_resize) and self.palette.highlight or self.palette.component)
-            another_render.roundedBoxEx(self.mins.x + self.size.x - self.barheight, self.mins.y + self.size.y - self.barheight, self.barheight, self.barheight, 0, 0, 0, 5)
+            render.drawRect(self.mins.x + self.size.x - self.barheight, self.mins.y + self.size.y - self.barheight, self.barheight, self.barheight)
             
-            render.setColor((self.resize_hover and self.hold_resize) and self.palette.highlight or self.palette.foreground)
+            render.setColor((self.resize_hover or self.hold_resize) and self.palette.highlight or self.palette.foreground)
 
             for i=1, 4 do
                 local x1,y1 = math.cos(math.pi/4 + (i/4) * (math.pi*2)) * (self.barheight/2-2),math.sin(math.pi/4 + (i/4) * (math.pi*2)) * (self.barheight/2-2)
@@ -161,15 +145,15 @@ function init()
             self.custom_design(self,cursor,action)
         else
             render.setColor(self.action.held and self.palette.highlight or self.palette.contrast)
-            another_render.roundedBoxEx(self.mins.x, self.mins.y, self.size.x, self.size.y, 6, 6, 6, 6)
+            render.drawRect(self.mins.x, self.mins.y, self.size.x, self.size.y)
 
             render.setColor(self.hover and self.palette.contrast or self.palette.component)
-            another_render.roundedBoxEx(self.mins.x+1, self.mins.y+1, self.size.x-2, self.size.y-2, 5, 5, 5, 5)
+            render.drawRect(self.mins.x+1, self.mins.y+1, self.size.x-2, self.size.y-2)
 
             render.setColor(self.action.held and self.palette.highlight or self.palette.foreground)
             render.drawSimpleText(self.center.x, self.center.y, self.text, TEXT_ALIGN.CENTER, TEXT_ALIGN.CENTER)
         end
-        
+
         if self.add_draw then
             self.add_draw(self,self.app,self.mins.x,self.mins.y,self.size.x,self.size.y)
         end
@@ -185,13 +169,13 @@ function init()
         local valuesize = math.remap(self.value, self.min, self.max, 0, self.size.x-2)
 
         render.setColor(self.palette.component)
-        another_render.roundedBox(self.mins.x, self.mins.y, self.size.x, self.size.y, 6, 6, 6, 6)
+        render.drawRect(self.mins.x, self.mins.y, self.size.x, self.size.y)
         
         render.setColor(self.palette.contrast)
-        another_render.roundedBox(self.mins.x, self.mins.y, self.size.x, self.size.y, 6, 6, 6, 6)
+        render.drawRect(self.mins.x, self.mins.y, self.size.x, self.size.y)
     
         render.setColor(self.palette.highlight)
-        another_render.roundedBox(self.mins.x+1, self.mins.y+1, valuesize, self.size.y-2, 5, 5, 5, 5)
+        render.drawRect(self.mins.x+1, self.mins.y+1, valuesize, self.size.y-2)
     
         render.setColor((self.hover or self.action.held) and self.palette.contrast or self.palette.component)
         render.drawFilledCircle(self.mins.x + valuesize, self.center.y, self.size.y)
@@ -218,24 +202,24 @@ function init()
 
     function SFUi.static.progress:render(cursor, action)
         render.setColor(self.palette.component)
-        another_render.roundedBox(self.mins.x, self.mins.y, self.size.x, self.size.y, 6, 6, 6, 6)
+        render.drawRect(self.mins.x, self.mins.y, self.size.x, self.size.y)
 
         render.setColor(self.palette.contrast)
-        another_render.roundedBox(self.mins.x+1, self.mins.y+1, self.size.x-2, self.size.y-2, 5, 5, 5, 5)
+        render.drawRect(self.mins.x+1, self.mins.y+1, self.size.x-2, self.size.y-2)
     
         render.setColor(self.palette.highlight)
         if self.value then
-            another_render.roundedBox(self.mins.x+1, self.mins.y+1,(self.size.x-2) * math.clamp(self.value, 0, 1), self.size.y-2, 5, 5, 5, 5)
+            render.drawRect(self.mins.x+1, self.mins.y+1,(self.size.x-2) * math.clamp(self.value, 0, 1), self.size.y-2)
         else
             local duration = 1
             local size = (self.size.x+1) / 3
             local t_phase = (timer.realtime() % 1) / duration
             local t_start = self.mins.x+1 + ((self.size.x+1) * t_phase)
             local t_size = math.min((self.maxs.x-1) - t_start, size)
-    
-            another_render.roundedBox(t_start, self.mins.y+1, t_size, self.size.y-2, 5, 5, 5, 5)
+
+            render.drawRect(t_start, self.mins.y+1, t_size, self.size.y-2)
             if t_size < size then
-                another_render.roundedBox(self.mins.x+1, self.mins.y+1, size - t_size, self.size.y-2, 5, 5, 5, 5)
+                render.drawRect(self.mins.x+1, self.mins.y+1, size - t_size, self.size.y-2)
             end
         end
 
@@ -246,9 +230,11 @@ function init()
         self:updateScroll(cursor)
         self:updateList(cursor)
         self.labelheight = select(2, render.getTextSize(self.label))
-
-        --render.setColor(self.palette.background)
-        --render.drawRectOutline(self.mins.x, self.mins.y, self.size.x, self.size.y)
+        
+        render.setColor(self.hover and self.palette.hover or self.palette.contrast)
+        render.drawRect(self.mins.x-1, self.mins.y-1, self.size.x+2, self.size.y+2)
+        render.setColor(self.palette.background)
+        render.drawRect(self.mins.x, self.mins.y, self.size.x, self.size.y)
     
         for option, item in pairs(self.list.items) do
             if item.max > self.mins.y and item.min < self.maxs.y then
@@ -282,23 +268,20 @@ function init()
         end
     
         render.setColor(self.palette.background)
-        another_render.roundedBoxEx(self.mins.x, self.mins.y - self.labelheight, self.size.x, self.labelheight, 6, 6, 0, 0)
-        another_render.roundedBoxEx(self.mins.x, self.maxs.y, self.size.x, self.labelheight, 0, 0, 6, 6)
+        render.drawRect(self.mins.x, self.mins.y - self.labelheight - 1, self.size.x, self.labelheight)
+        render.drawRect(self.mins.x, self.maxs.y+1, self.size.x, self.labelheight)
     
         local scrollheight = (self.size.y / self.list.length) * self.size.y
         if scrollheight < self.size.y then
             render.setColor(self.palette.component)
-            another_render.roundedBoxEx(self.maxs.x - self.scrollwidth, self.mins.y, self.scrollwidth, self.size.y, 6, 0, 6, 0)
+            render.drawRect(self.maxs.x - self.scrollwidth, self.mins.y, self.scrollwidth, self.size.y)
     
             render.setColor((self.list.action.scrollheld or self.list.action.scrolldist >= 0.2) and self.palette.highlight or (self.list.action.scrollhover and self.palette.hover or self.palette.contrast))
-            another_render.roundedBoxEx(self.maxs.x - self.scrollwidth, math.remap(self.list.scroll, 0, self.list.length - self.size.y, self.mins.y, self.maxs.y - scrollheight), self.scrollwidth, scrollheight, 6, 0, 6, 0)
+            render.drawRect(self.maxs.x - self.scrollwidth, math.remap(self.list.scroll, 0, self.list.length - self.size.y, self.mins.y, self.maxs.y - scrollheight), self.scrollwidth, scrollheight)
         end
         
         render.setColor(self.palette.foreground)
         render.drawSimpleText(self.mins.x + 2, self.mins.y - self.labelheight, self.label)
-    
-        render.setColor(self.hover and self.palette.hover or self.palette.contrast)
-        another_render.roundedBoxOutline(2,self.mins.x - 1, self.mins.y - 1, self.size.x + 2, self.size.y + 2)
     
         SFUi.component.render(self, cursor, action)
     end

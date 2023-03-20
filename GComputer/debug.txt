@@ -35,7 +35,7 @@ function on_render(computer,data,w,h)
     another_render.roundedBoxOutline(4,64 + 128 + 32,64,128,128)
 
     another_render.roundedBoxEx(64,64 + 128 + 32,128,128,24,0,0,0)
-    another_render.roundedBoxEx(64 + 128 + 32,64 + 128 + 32,128,128,0,0,0,24)
+    another_render.roundedBoxEx(64 + 128 + 32,64 + 128 + 32,128,128,45,64,32,24)
 end
 
 return {render=on_render,init=onInit}

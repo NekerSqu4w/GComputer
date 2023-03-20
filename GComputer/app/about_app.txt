@@ -2,7 +2,7 @@ local app = {}
 
 app.title = "About app"
 app.version = 1.0
-app.author = "Neker's Company"
+app.author = "Neker's Industry's"
 app.description = "Allow you to show information about an app"
 
 app.pos = Vector(60,60)
@@ -78,7 +78,7 @@ end
 //use only if you need to draw another thing that not in SFUi lib
 //Like a simple rect, roundedbox or polygon etc..
 app.add_render = function(window,app,x,y,w,h)
-    if window.selected_app then window.selected_app.app_logo(app,x + 180,y + 35,35,35) end
+    if window.selected_app then window.selected_app.app_logo(app,x + 180,y + 20,35,35) end
 end
     
 return app

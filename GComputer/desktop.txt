@@ -5,7 +5,6 @@ function computer.open_app(app_path)
     
     //prevent from rewriting the load data of an app
     local current_app_metadata = table.copy(computer.app[app_path])
-    --for id, data in pairs(computer.app[app_path]) do current_app_metadata[id] = data end
 
     //used to check if an app already exist
     if current_app_metadata.multiple_open == false then
@@ -17,12 +16,11 @@ function computer.open_app(app_path)
         end
     end
 
-    //if doesn't exist doesn't create it
+    //if doesn't exist create it
     if already_created == false and current_app_metadata then
         local new_app = SFUi.window(current_app_metadata.pos, current_app_metadata.size, current_app_metadata.title, true, false, function(me)
             computer.GComputer_gui:removeComponent(me)
         end)
-
         local show_closebtn = current_app_metadata.close_btn
         if show_closebtn == false then show_closebtn = nil end
 
@@ -46,7 +44,7 @@ end
 function desktop_btn(self,cursor,action)
     if self.hover then
         render.setColor(Color(255,255,255,50))
-        render.drawRoundedBox(6,self.mins.x, self.mins.y, self.size.x, self.size.y)
+        render.drawRect(self.mins.x, self.mins.y, self.size.x, self.size.y)
     end 
 end
 
@@ -63,13 +61,13 @@ function reload_desktop_app()
     for id, capp in pairs(computer.app) do
         if remove[capp.app_id] then
         else
-            computer.desktop_app[id] = SFUi.button(computer.appbar_win, Vector(0,0), Vector(80, 80), "", function(me) computer.open_app(id) end)
+            computer.desktop_app[id] = SFUi.button(computer.appbar_win, Vector(0,0), Vector(100, 80), "", function(me) computer.open_app(id) end)
             computer.desktop_app[id].id = "desktop_app"
             computer.desktop_app[id].id_name = capp.title
             computer.desktop_app[id].app = capp
             computer.desktop_app[id].custom_design = desktop_btn
             computer.desktop_app[id].add_draw = function(btn,app,x,y,w,h)
-                app.app_logo(app,x+20,y+20,w-40,h-40)
+                app.app_logo(app,x + w/2 - h/2 + 20,y+20,h-40,h-40)
 
                 render.setColor(Color(255,255,255))
                 render.drawSimpleText(x + w/2, y + h - 20, btn.id_name, TEXT_ALIGN.CENTER, TEXT_ALIGN.TOP)
@@ -100,9 +98,9 @@ function onInit(computer)
     end)
     function computer.open_startbar:render(cursor, action)
         render.setColor(self.action.held and self.palette.highlight or self.palette.contrast)
-        another_render.roundedBoxEx(self.mins.x, self.mins.y, self.size.x, self.size.y, 0, 6, 0, 0)
+        render.drawRect(self.mins.x, self.mins.y, self.size.x, self.size.y)
         render.setColor(self.hover and self.palette.contrast or self.palette.component)
-        another_render.roundedBoxEx(self.mins.x+1, self.mins.y+1, self.size.x-2, self.size.y-2, 0, 5, 0, 0)
+        render.drawRect(self.mins.x+1, self.mins.y+1, self.size.x-2, self.size.y-2)
         if self.action.click and self.callback then
             self.callback()
         end
@@ -112,9 +110,9 @@ function onInit(computer)
     computer.open_clock = SFUi.button(computer.appbar_win,Vector(0, 0), Vector(120, 45), "",function() computer.open_app("gcomputer/app/clock.txt") end)
     function computer.open_clock:render(cursor, action)
         render.setColor(self.action.held and self.palette.highlight or self.palette.contrast)
-        another_render.roundedBoxEx(self.mins.x, self.mins.y, self.size.x, self.size.y, 6, 0, 0, 0)
+        render.drawRect(self.mins.x, self.mins.y, self.size.x, self.size.y)
         render.setColor(self.hover and self.palette.contrast or self.palette.component)
-        another_render.roundedBoxEx(self.mins.x+1, self.mins.y+1, self.size.x-2, self.size.y-2, 5, 0, 0, 0)
+        render.drawRect(self.mins.x+1, self.mins.y+1, self.size.x-2, self.size.y-2)
         if self.action.click and self.callback then
             self.callback()
         end
@@ -137,7 +135,8 @@ end
 
 function on_render(computer,data,w,h)
     local isHUD = not render.getScreenEntity()
-    computer.cursor.x, computer.cursor.y = isHUD and {input.getCursorPos()} or {render.cursorPos()}
+    if isHUD then computer.cursor.x, computer.cursor.y = input.getCursorPos()
+    else computer.cursor.x, computer.cursor.y = render.cursorPos() end
     computer.created_app = computer.GComputer_gui.components
 
     computer.appbar_win.pos = Vector(0,0)
@@ -149,7 +148,7 @@ function on_render(computer,data,w,h)
     local x,y = 0,-1
     for id, app in pairs(computer.desktop_app) do
         y = y + 1
-        if y >= 4 then
+        if 20 + y * (app.size.y+20) >= computer.resolution.y-45-60 then
             x = x + 1
             y = 0
         end
@@ -161,10 +160,14 @@ function on_render(computer,data,w,h)
     //draw background
     local back_size = w
     if h>w then back_size = h end
-    
+
+    render.setFilterMag(1)
+    render.setFilterMin(1)
     render.setColor(Color(255,255,255))
     render.setMaterial(computer.material.background[computer.use_background])
     render.drawTexturedRect(0,-back_size/4,back_size,back_size)
+    render.setFilterMag(3)
+    render.setFilterMin(3)
 
     //task bar
     render.setColor((computer.current_theme.main_color/4):setA(255))

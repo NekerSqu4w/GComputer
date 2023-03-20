@@ -2,7 +2,7 @@ local app = {}
 
 app.title = "Your session"
 app.version = 1.0
-app.author = "Neker's Company"
+app.author = "Neker's Industry's"
 app.description = ""
 
 app.pos = Vector(0,0)

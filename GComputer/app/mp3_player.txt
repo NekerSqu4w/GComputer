@@ -1,0 +1,61 @@
+local app = {}
+
+app.title = "MP3 Player"
+app.version = 1.0
+app.author = "Neker's Industry's"
+app.description = "Allow you to play song"
+
+app.pos = Vector(0,0)
+app.size = Vector(300, 200)
+app.minimum_size = Vector(300, 200)
+app.maximum_size = Vector(4096, 4096)
+
+app.draggable = true
+app.close_btn = true
+app.resizable = true
+
+app.multiple_open = true
+app.app_id = "gcomputer_mp3player"
+
+app.on_load = function(window,app)
+    window.pos = computer.resolution/2 - window.size/2
+
+    window.cover_mat = material.createFromImage("icon16/script_error.png","")
+end
+
+app.app_logo = function(app,x,y,w,h)
+    render.setFilterMag(1)
+    render.setFilterMin(1)
+    
+    render.setColor(Color(255,255,255))
+    render.setMaterial(computer.icon["ipod"])
+    render.drawTexturedRect(x,y,w,h)
+    render.setMaterial()
+
+    render.setFilterMag(3)
+    render.setFilterMin(3)
+end
+    
+//use only if you need to draw another thing that not in SFUi lib
+//Like a simple rect, roundedbox or polygon etc..
+app.add_render = function(window,app,x,y,w,h)
+    local back_size = window.size.x
+    if window.size.y-60 < back_size then back_size = window.size.y-60 end
+
+    render.setColor(Color(0,0,0))
+    render.drawRect(x,y,w,back_size)
+
+    render.setFilterMag(1)
+    render.setFilterMin(1)
+    render.setColor(Color(255,255,255))
+    render.setMaterial(window.cover_mat)
+    render.drawTexturedRect(x + w/2 - back_size/2,y,back_size,back_size)
+    render.setFilterMag(3)
+    render.setFilterMin(3)
+
+    render.setMaterial()
+
+    render.drawSimpleText(x+w/2,y+h - 23,"Maybe soon",1,0)
+end
+    
+return app

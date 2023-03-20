@@ -1,0 +1,74 @@
+local app = {}
+
+app.title = "Theme manager"
+app.version = 1.0
+app.author = "Neker's Industry's"
+app.description = "Manage your theme"
+
+app.pos = Vector(10,10)
+app.size = Vector(490, 256)
+app.minimum_size = Vector(490, 256)
+app.maximum_size = Vector(4096, 4096)
+
+app.draggable = true
+app.close_btn = true
+app.resizable = true
+
+app.multiple_open = true
+app.app_id = "gcomputer_thememanager"
+
+app.choose_back_btn = {}
+
+app.on_load = function(window,app)
+    for id, mat in pairs(computer.material.background) do
+        window.app.choose_back_btn[id] = SFUi.button(window, Vector(0,0), Vector(70, 70), "", function(me) computer.use_background = me.background_id end)
+        window.app.choose_back_btn[id].background_id = id
+        window.app.choose_back_btn[id].custom_design = function (self,cursor,action)
+            render.setColor(Color(255,255,255))
+            render.setMaterial(mat)
+            render.drawTexturedRect(self.mins.x, self.mins.y, self.size.x, self.size.y)
+            render.setMaterial()
+            
+            if self.hover then
+                render.setColor(Color(255,255,255,20))
+                render.drawRect(self.mins.x, self.mins.y, self.size.x, self.size.y)
+            end 
+        end
+    end
+    
+    window.pos = computer.resolution/2 - window.size/2
+end
+
+app.app_logo = function(app,x,y,w,h)
+    render.setFilterMag(1)
+    render.setFilterMin(1)
+
+    render.setColor(Color(255,255,255))
+    render.setMaterial(computer.icon["computer_edit"])
+    render.drawTexturedRect(x,y,w,h)
+    render.setMaterial()
+    
+    render.setFilterMag(3)
+    render.setFilterMin(3)
+end
+    
+//use only if you need to draw another thing that not in SFUi lib
+//Like a simple rect, roundedbox or polygon etc..
+app.add_render = function(window,app,x,y,w,h)
+    render.setColor(Color(255,255,255))
+    render.drawSimpleText(window.mins.x + 4,window.mins.y + window.barheight + 8,"Change background:",0,0)
+
+    local next_height = 0
+    local grid_x,grid_y = -1, 0
+    for id, btn in pairs(window.app.choose_back_btn) do
+        grid_x = grid_x + 1
+        if 10 + (grid_x+1) * (btn.size.y+10) > w then
+            grid_y = grid_y + 1
+            grid_x = 0
+        end
+        btn.pos = Vector(10 + grid_x * 80,40 + grid_y * 80)
+    end
+    next_height = next_height + 80 + 20 + grid_y * 80
+end
+    
+return app

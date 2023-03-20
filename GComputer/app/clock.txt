@@ -2,7 +2,7 @@ local app = {}
 
 app.title = "Clock"
 app.version = 1.0
-app.author = "Neker's Company"
+app.author = "Neker's Industry's"
 app.description = "Show clock"
 
 app.pos = Vector(0,0)
@@ -32,7 +32,7 @@ app.app_logo = function(app,x,y,w,h)
     render.setMaterial(computer.icon["time"])
     render.drawTexturedRect(x,y,w,h)
     render.setMaterial()
-
+    
     render.setFilterMag(3)
     render.setFilterMin(3)
 end
