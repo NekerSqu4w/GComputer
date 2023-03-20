@@ -18,8 +18,8 @@ app.multiple_open = true
 app.app_id = "gcomputer_clock"
 
 app.on_load = function(window,app)
-    window.list = SFUi.list(window, Vector(240, 40), Vector(150, 256-80), "UTC:", computer.clock.ClockUTCOffset, function(choose_utc) computer.clock.utc_id = choose_utc end)
-    window.list.value = computer.clock.utc_id
+    window.list = SFUi.list(window, Vector(240, 40), Vector(150, 256-80), "UTC:", computer.clock.ClockUTCOffset, function(choose_utc) computer.save_data.utc_id = choose_utc end)
+    window.list.value = computer.save_data.utc_id or 15
 
     window.pos = Vector(computer.resolution.x-app.size.x-15,computer.resolution.y-app.size.y-15-45)
 end

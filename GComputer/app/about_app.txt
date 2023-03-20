@@ -24,11 +24,11 @@ app.on_load = function(window,app)
     local i = 0
     for path, data in pairs(computer.app) do
         i = i + 1
-        window.format_list[i] = string.replace(path,"gcomputer/","")
+        window.format_list[i] = string.replace(path,"GComputer/","")
     end
     
     SFUi.list(window, Vector(10, 35), Vector(180-20, app.size.y - 20 - 30), "Select an app:", window.format_list, function(choose_app)
-        window.selected_app = computer.app["gcomputer/"..window.format_list[choose_app]]
+        window.selected_app = computer.app["GComputer/"..window.format_list[choose_app]]
         
         window.info_label[1].content = {computer.current_theme.main_color,"Real id: ",Color(255,255,255),window.selected_app.app_id}
         window.info_label[2].content = {computer.current_theme.main_color,"Title: ",Color(255,255,255),window.selected_app.title}

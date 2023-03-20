@@ -21,6 +21,9 @@
 --@include lib/multiple_screen.lua
 --@include lib/console.txt
 
+--@include lib/player_data.txt
+require("lib/player_data.txt")
+    
 if CLIENT then
     //import ui lib
     require("lib/sfui/sfui.lua")
@@ -50,19 +53,15 @@ if CLIENT then
     computer.clock = {}
     computer.cursor = {}
 
-    computer.use_background = 1
     computer.resolution = Vector(512,512)
     computer.app = {}
     computer.created_app = {}
 
     computer.theme = requiredir("theme")
-    computer.use_theme = "gcomputer/theme/original.txt"
-    computer.current_theme = computer.theme[computer.use_theme].use()
 
     computer.critical_error = false
     computer.critical_error_message = ""
-    
-    computer.clock.utc_id = 16
+
     computer.clock.ClockUTCOffset = {
         "-12:00","-11:00","-10:00","-09:30","-09:00","-08:00","-07:00","-06:00",
         "-05:00","-04:00","-03:30","-03:00","-02:00","-01:00","00:00","01:00",
@@ -70,6 +69,17 @@ if CLIENT then
         "06:00","06:30","07:00","08:00","08:45","09:00","10:00","10:30",
         "11:00","12:00","12:45","13:00","14:00"
     }
+    
+    computer.save_data = {}
+    getPData(player(),function(receive_data)
+        computer.save_data = receive_data
+        computer.current_theme = computer.theme[computer.save_data.use_theme or "GComputer/theme/original.txt"].use()
+        console.log({Color(80,255,80),"Receiving player data.."})
+    end)
+    timer.create("startsaving",15,0,function()
+        savePData(player(),computer.save_data)
+        console.log({Color(80,255,80),"Saving player data.."})
+    end)
 
     function utcOffsetToRealtime(id)
         local timeInSec = 0
@@ -136,8 +146,8 @@ if CLIENT then
         hook.remove("ms_render2",last_interface)
         hook.add("render",name,function()
             msl.update(true) //msl.update(show_id)
-            if computer.current_theme.update then computer.current_theme.update() end
-            
+            if computer.current_theme and computer.current_theme.update then computer.current_theme.update() end
+
             computer.ram.usage = math.round(ramUsed(),2)
             computer.ram.max = math.round(ramMax(),2)
             
@@ -146,7 +156,8 @@ if CLIENT then
 
             computer.time = os.date("*t",os.time())
 
-            computer.time.realtime = os.time() + utcOffsetToRealtime(computer.clock.utc_id)
+            if computer.save_data and computer.save_data.utc_id then computer.time.realtime = os.time() + utcOffsetToRealtime(computer.save_data.utc_id)
+            else computer.time.realtime = os.time() + utcOffsetToRealtime(15)  end
             computer.time.sec = computer.time.realtime%60
             computer.time.min = ((computer.time.realtime/60)%60)
             computer.time.hour = ((computer.time.realtime/3600)%24)
@@ -181,7 +192,8 @@ if CLIENT then
 
             local cur_color = Color(255,255,255)
             local move = -1
-            for key, line in pairs(console.log_data) do
+            for id=#console.log_data, math.max(#console.log_data - 32, 1), -1 do
+                line = console.log_data[id]
                 move = move + 1
                 if type(line) == "table" then
                     local next_width = 0

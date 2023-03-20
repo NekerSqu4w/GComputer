@@ -70,11 +70,13 @@ function on_render(computer,data,w,h)
         end
     end
     
-    render.setColor(computer.current_theme.main_color)
-    another_render.star(w - 256,h/2,180,-timer.curtime()*0.8)
-    
-    render.setColor((computer.current_theme.main_color/1.5):setA(255))
-    another_render.star(w - 256+200,h/2+230,300,timer.curtime()*0.4)
+    if computer.current_theme then
+        render.setColor(computer.current_theme.main_color)
+        another_render.star(w - 256,h/2,180,-timer.curtime()*0.8)
+        
+        render.setColor((computer.current_theme.main_color/1.5):setA(255))
+        another_render.star(w - 256+200,h/2+230,300,timer.curtime()*0.4)
+    end
     
     render.setColor(Color(255,255,255))
     render.drawText(10,10, "" .. data.bios_config)

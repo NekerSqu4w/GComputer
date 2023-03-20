@@ -1,0 +1,77 @@
+
+
+//a weird lib made by AstalNeker just to save player data
+if SERVER then
+    local GComputer_savedata = {}
+    net.receive("handlefirst_load",function()
+        local to_data = net.readTable()
+        GComputer_savedata = to_data
+    end)
+
+    net.receive("GComputer_setpdata",function()
+        //save to data
+        local to_player = net.readEntity()
+        local to_data = net.readTable()
+        GComputer_savedata[to_player:getSteamID()] = to_data
+        
+        //save data from owner
+        net.start("GComputer_savepdata")
+        net.writeTable(GComputer_savedata)
+        net.send(owner())
+    end)
+
+    net.receive("GComputer_getpdata",function()
+        //get data
+        local to_player = net.readEntity()
+        if GComputer_savedata[to_player:getSteamID()] then
+            net.start("GComputer_receivepdata")
+            net.writeTable(GComputer_savedata[to_player:getSteamID()])
+            net.send()
+        else
+            net.start("GComputer_receivepdata")
+            net.writeTable({})
+            net.send()
+        end
+    end)
+end
+
+if CLIENT then
+    local GComputer_savedata = {}
+    function savePData(player,data)
+        //send to server
+        net.start("GComputer_setpdata")
+        net.writeEntity(player)
+        net.writeTable(data)
+        net.send()
+
+        GComputer_savedata[player:getSteamID()] = data
+    end
+    
+    function getPData(player,exec)
+        net.start("GComputer_getpdata")
+        net.writeEntity(player)
+        net.send()
+        net.receive("GComputer_receivepdata",function()
+            local to_data = net.readTable()
+            exec(to_data)    
+        end)
+    end
+
+    net.receive("GComputer_savepdata",function(ply)
+        local to_data = net.readTable()
+        file.write("gcomputer_pdata.txt",json.encode(to_data))
+    end)
+    
+    if player() == owner() then
+        local default_data = file.read("gcomputer_pdata.txt")
+        if default_data then
+            net.start("handlefirst_load")
+            net.writeTable(json.decode(default_data))
+            net.send()
+        else
+            net.start("handlefirst_load")
+            net.writeTable({})
+            net.send()
+        end
+    end
+end

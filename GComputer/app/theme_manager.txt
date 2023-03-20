@@ -21,7 +21,7 @@ app.choose_back_btn = {}
 
 app.on_load = function(window,app)
     for id, mat in pairs(computer.material.background) do
-        window.app.choose_back_btn[id] = SFUi.button(window, Vector(0,0), Vector(70, 70), "", function(me) computer.use_background = me.background_id end)
+        window.app.choose_back_btn[id] = SFUi.button(window, Vector(0,0), Vector(70, 70), "", function(me) computer.save_data.use_background = me.background_id end)
         window.app.choose_back_btn[id].background_id = id
         window.app.choose_back_btn[id].custom_design = function (self,cursor,action)
             render.setColor(Color(255,255,255))
