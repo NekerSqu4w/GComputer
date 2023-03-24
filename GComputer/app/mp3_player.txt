@@ -35,7 +35,7 @@ app.app_logo = function(app,x,y,w,h)
     render.setFilterMag(3)
     render.setFilterMin(3)
 end
-    
+
 //use only if you need to draw another thing that not in SFUi lib
 //Like a simple rect, roundedbox or polygon etc..
 app.add_render = function(window,app,x,y,w,h)
@@ -55,7 +55,7 @@ app.add_render = function(window,app,x,y,w,h)
 
     render.setMaterial()
 
-    render.drawSimpleText(x+w/2,y+h - 23,"Maybe soon",1,0)
+    render.drawSimpleText(x+w/2,y+h - 35,"Maybe soon",1,0)
 end
     
 return app

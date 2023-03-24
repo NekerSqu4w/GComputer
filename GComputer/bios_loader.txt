@@ -1,5 +1,6 @@
 
 --@includedir base64_image/background
+--@includedir base64_image/sprite_sheet
 
 function onInit(computer)
     local data = {}
@@ -13,16 +14,17 @@ Powered by 'Farting Chipset'
     data.bios_config_default = data.bios_config
 
     computer.material.background = {}
+    computer.material.sprite_sheet = {}
     computer.material.bios = {}
     computer.func = {}
     computer.icon = {}
 
-    computer.material.background[1] = material.load("console/background02")
-    computer.material.background[2] = material.load("console/background03")
-    computer.material.background[3] = material.load("console/background04")
-    computer.material.background[4] = material.load("console/background05")
-    computer.material.background[5] = material.load("console/background06")
-    computer.material.background[6] = material.load("console/background07")
+    computer.material.background["console/background02"] = material.load("console/background02")
+    computer.material.background["console/background03"] = material.load("console/background03")
+    computer.material.background["console/background04"] = material.load("console/background04")
+    computer.material.background["console/background05"] = material.load("console/background05")
+    computer.material.background["console/background06"] = material.load("console/background06")
+    computer.material.background["console/background07"] = material.load("console/background07")
 
     //import custom base64 material
     local base64_img = requiredir("base64_image/background")
@@ -30,9 +32,21 @@ Powered by 'Farting Chipset'
         local base64Mat = material.create("UnlitGeneric")
         base64Mat:setTextureURL("$basetexture", data, function(_,_,_,_,layout) layout(0, 0, 1024, 1024) end)
 
-        table.insert(computer.material.background,base64Mat)
+        computer.material.background[id] = base64Mat
         console.log({Color(80,255,80),"Imported background ",Color(80,255,255),"'"..id.."'"})
     end
+
+    --[[
+    //import custom base64 material
+    local base64_img = requiredir("base64_image/sprite_sheet")
+    for id, data in pairs(base64_img) do
+        local base64Mat = material.create("UnlitGeneric")
+        base64Mat:setTextureURL("$basetexture", data)
+
+        computer.material.sprite_sheet[id] = base64Mat
+        console.log({Color(80,255,80),"Imported sprite sheet ",Color(80,255,255),"'"..id.."'"})
+    end
+    ]]
 
     computer.font.bios_font = render.createFont("FontAwesome",20,600,true,false,false,false,0,false,0)
     computer.font.gui_font = render.createFont("FontAwesome",15,600,true,false,false,false,0,false,0)

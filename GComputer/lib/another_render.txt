@@ -1,10 +1,13 @@
+local tex_corner8 = material.load("gui/corner8")
+local tex_corner16 = material.load("gui/corner16")
+local tex_corner32 = material.load("gui/corner32")
+local tex_corner64 = material.load("gui/corner64")
 local tex_corner512 = material.load("gui/corner512")
 
 //a modification of the default roundedBox system
 function RoundedBox(x, y, w, h, borderradius)
     return RoundedBoxEx(x, y, w, h, borderradius, borderradius, borderradius, borderradius)
 end
-
 function RoundedBoxEx(x, y, w, h, btl, btr, bbl, bbr)
     if btl == nil then btl = 0 end
     if btr == nil then btr = 0 end
@@ -48,6 +51,54 @@ function RoundedBoxEx(x, y, w, h, btl, btr, bbl, bbr)
     else
         render.drawRect(x + w - w/2,y + h - h/2,w/2,h/2)
     end
+end
+
+//the original roundedBox code but with a bit modification
+function RoundedBox2(bordersize, x, y, w, h)
+    return RoundedBoxEx2(bordersize, x, y, w, h, true, true, true, true)
+end
+function RoundedBoxEx2(bordersize, x, y, w, h, tl, tr, bl, br)
+    if (bordersize <= 0) then
+        render.drawRect(x, y, w, h)
+        return
+    end
+    bordersize = math.min(math.round(bordersize), math.floor(w/2), math.floor(h/2))
+
+    render.drawRect(x + bordersize, y, w - bordersize * 2, h)
+    render.drawRect(x, y + bordersize, bordersize, h - bordersize * 2)
+    render.drawRect(x + w - bordersize, y + bordersize, bordersize, h - bordersize * 2)
+
+    local tex = tex_corner512
+    --if (bordersize > 8) then tex = tex_corner16 end
+    --if (bordersize > 16) then tex = tex_corner32 end
+    --if (bordersize > 32) then tex = tex_corner64 end
+    --if (bordersize > 64) then tex = tex_corner512 end
+
+    render.setMaterial(tex)
+    if tl then
+        render.drawTexturedRectUV(x, y, bordersize, bordersize, 0, 0, 1, 1)
+    else
+        render.drawRect(x, y, bordersize, bordersize)
+    end
+    
+    if tr then
+        render.drawTexturedRectUV(x + w - bordersize, y, bordersize, bordersize, 1, 0, 0, 1)
+    else
+        render.drawRect(x + w - bordersize, y, bordersize, bordersize)
+    end
+    
+    if bl then
+        render.drawTexturedRectUV(x, y + h -bordersize, bordersize, bordersize, 0, 1, 1, 0)
+    else
+        render.drawRect(x, y + h - bordersize, bordersize, bordersize)
+    end
+    
+    if br then
+        render.drawTexturedRectUV(x + w - bordersize, y + h - bordersize, bordersize, bordersize, 1, 1, 0, 0)
+    else
+        render.drawRect(x + w - bordersize, y + h - bordersize, bordersize, bordersize)
+    end
+    render.setMaterial()
 end
 
 function RoundedBoxOutline(radius, x, y, w, h)
@@ -106,5 +157,21 @@ function star(x,y,size,add_ang)
     render.drawPoly(star)
 end
 
+function drawStripLine(table)
+    local lx,ly = table[1].x, table[1].y
+    for i=1, #table+1 do
+        if i >= #table+1 then
+            x = table[1].x
+            y = table[1].y
+        else
+            x = table[i].x
+            y = table[i].y
+        end
+        render.drawLine(x,y,lx,ly)
+        lx = x
+        ly = y
+    end
+end
 
-return {roundedBox=RoundedBox,roundedBoxEx=RoundedBoxEx,star=star,roundedBoxOutline=RoundedBoxOutline,roundedBoxOutlineEx=RoundedBoxOutlineEx}
+
+return {drawStripLine=drawStripLine,roundedBox=RoundedBox,roundedBoxEx=RoundedBoxEx,roundedBox2=RoundedBox2,roundedBoxEx2=RoundedBoxEx2,star=star,roundedBoxOutline=RoundedBoxOutline,roundedBoxOutlineEx=RoundedBoxOutlineEx}

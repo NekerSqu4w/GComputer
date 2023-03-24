@@ -29,7 +29,7 @@ function computer.open_app(app_path)
         new_app.maximum_size = current_app_metadata.maximum_size
         new_app.draggable = current_app_metadata.draggable
         new_app.closehides = show_closebtn
-        new_app.add_draw = current_app_metadata.add_render
+        new_app.draw_on_top = current_app_metadata.add_render
         new_app.app = current_app_metadata
         new_app.lastclicked = timer.realtime()
 
@@ -39,13 +39,6 @@ function computer.open_app(app_path)
 
         return new_app
     end
-end
-
-function desktop_btn(self,cursor,action)
-    if self.hover then
-        render.setColor(Color(255,255,255,50))
-        render.drawRect(self.mins.x, self.mins.y, self.size.x, self.size.y)
-    end 
 end
 
 function reload_desktop_app()
@@ -65,12 +58,16 @@ function reload_desktop_app()
             computer.desktop_app[id].id = "desktop_app"
             computer.desktop_app[id].id_name = capp.title
             computer.desktop_app[id].app = capp
-            computer.desktop_app[id].custom_design = desktop_btn
-            computer.desktop_app[id].add_draw = function(btn,app,x,y,w,h)
-                app.app_logo(app,x + w/2 - h/2 + 20,y+20,h-40,h-40)
+            computer.desktop_app[id].paint = function(self)
+                self.app.app_logo(app,self.mins.x + self.size.x/2 - self.size.y/2 + 20,self.mins.y+20,self.size.y-40,self.size.y-40)
 
                 render.setColor(Color(255,255,255))
-                render.drawSimpleText(x + w/2, y + h - 20, btn.id_name, TEXT_ALIGN.CENTER, TEXT_ALIGN.TOP)
+                render.drawSimpleText(self.mins.x + self.size.x/2, self.mins.y + self.size.y - 20, self.id_name, TEXT_ALIGN.CENTER, TEXT_ALIGN.TOP)
+                
+                if self.hover then
+                    render.setColor(Color(255,255,255,50))
+                    another_render.roundedBox2(6,self.mins.x, self.mins.y, self.size.x, self.size.y)
+                end
             end
         end
     end
@@ -96,27 +93,19 @@ function onInit(computer)
             computer.start_bar = computer.open_app("GComputer/app/start_bar.txt")
         end
     end)
-    function computer.open_startbar:render(cursor, action)
+    computer.open_startbar.paint = function(self)
         render.setColor(self.action.held and self.palette.highlight or self.palette.contrast)
         render.drawRect(self.mins.x, self.mins.y, self.size.x, self.size.y)
         render.setColor(self.hover and self.palette.contrast or self.palette.component)
         render.drawRect(self.mins.x+1, self.mins.y+1, self.size.x-2, self.size.y-2)
-        if self.action.click and self.callback then
-            self.callback()
-        end
-        SFUi.component.render(self, cursor, action)
     end
 
     computer.open_clock = SFUi.button(computer.appbar_win,Vector(0, 0), Vector(120, 45), "",function() computer.open_app("GComputer/app/clock.txt") end)
-    function computer.open_clock:render(cursor, action)
+    computer.open_clock.paint = function(self)
         render.setColor(self.action.held and self.palette.highlight or self.palette.contrast)
         render.drawRect(self.mins.x, self.mins.y, self.size.x, self.size.y)
         render.setColor(self.hover and self.palette.contrast or self.palette.component)
         render.drawRect(self.mins.x+1, self.mins.y+1, self.size.x-2, self.size.y-2)
-        if self.action.click and self.callback then
-            self.callback()
-        end
-        SFUi.component.render(self, cursor, action)
     end
 
     computer.desktop_app = {}
@@ -152,7 +141,7 @@ function on_render(computer,data,w,h)
             x = x + 1
             y = 0
         end
-        app.pos = Vector(20 + x * (app.size.y+20),20 + y * (app.size.y+20)) 
+        app.pos = Vector(20 + x * (app.size.y+20),20 + y * (app.size.y+20))
     end
 
     render.setFont(computer.font.bios_font)
@@ -164,29 +153,29 @@ function on_render(computer,data,w,h)
     render.setFilterMag(1)
     render.setFilterMin(1)
     render.setColor(Color(255,255,255))
-    render.setMaterial(computer.material.background[computer.save_data.use_background or 1])
+    if not computer.save_data.use_background then computer.save_data.use_background = "console/background02" end
+    render.setMaterial(computer.material.background[computer.save_data.use_background])
     render.drawTexturedRect(0,-back_size/4,back_size,back_size)
     render.setFilterMag(3)
     render.setFilterMin(3)
 
+    render.setFont(computer.font.gui_font)
+
     //task bar
     render.setColor((computer.current_theme.main_color/4):setA(255))
     render.drawRect(0,h-45,w,45)
-
-    render.setFont(computer.font.gui_font)
-
     computer.appbar_gui:render()
-    computer.GComputer_gui:render()
-    
     local startbar_metadata = computer.app["GComputer/app/start_bar.txt"]
     if startbar_metadata and computer.open_startbar then
         startbar_metadata.app_logo(startbar_metadata,computer.open_startbar.mins.x+5,computer.open_startbar.mins.y+5,computer.open_startbar.size.x-10,computer.open_startbar.size.y-10)
     end
-    
     //draw time on clock button
     render.setColor(Color(255,255,255))
     render.drawSimpleText(computer.open_clock.mins.x + computer.open_clock.size.x - 15,computer.open_clock.mins.y + computer.open_clock.size.y - 45/2-10, "" .. format_hour(computer.time),2,1)
     render.drawSimpleText(computer.open_clock.mins.x + computer.open_clock.size.x - 15,computer.open_clock.mins.y + computer.open_clock.size.y - 45/2+8, "" .. format_date(computer.time),2,1)
+
+    //draw all app
+    computer.GComputer_gui:render()
     
     render.setFont(computer.font.bios_font)
     //draw critical error

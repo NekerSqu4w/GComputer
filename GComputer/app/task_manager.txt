@@ -23,17 +23,36 @@ app.last_check_num = 0
 app.reload_app_list = function(window,app)
     window.end_task_btn = {}
 
+    local remove_list = {}
     for id, btn in pairs(window.children) do
-        if btn.id == "end_task" then
-            table.remove(window.children,id)
+        if btn.id and btn.id == "end_task" then
+            table.insert(remove_list,id)
+        end
+    end
+    for key, id in pairs(remove_list) do table.remove(window.children,id) end
+
+    --local unlist = {"gcomputer_startbar"}
+    for id, capp in pairs(computer.created_app) do
+        --if unlist[capp.app_id] then continue end
+        window.end_task_btn[id] = SFUi.button(window, Vector(0,0), Vector(70, 20), "End task", function(me)
+            computer.GComputer_gui:removeComponent(capp)
+        end)
+        window.end_task_btn[id].id = "end_task"
+        window.end_task_btn[id].id_name = capp.title
+        window.end_task_btn[id].paint = function(self)
+            render.setColor(self.hover and self.palette.highlight or self.palette.component)
+            render.drawRect(self.mins.x-1, self.mins.y-1, self.size.x+2, self.size.y+2)
+            
+            render.setColor(self.action.held and self.palette.highlight or self.palette.contrast)
+            render.drawRect(self.mins.x, self.mins.y, self.size.x, self.size.y)
+
+            render.setColor(self.action.held and Color(0,0,0) or self.palette.foreground)
+            render.drawSimpleText(self.center.x, self.center.y, self.text, TEXT_ALIGN.CENTER, TEXT_ALIGN.CENTER)
         end
     end
 
-    for id, capp in pairs(computer.created_app) do
-        window.end_task_btn[id] = SFUi.button(window, Vector(0,0), Vector(70, 20), "End task", function(me) end)
-        window.end_task_btn[id].id = "end_task"
-        window.end_task_btn[id].id_name = capp.title
-    end
+    //when adding other components it's buged
+    //SFUi.button(window, Vector(0,0), Vector(120, 50), "Test button")
 end
 
 app.on_load = function(window,app)
@@ -48,7 +67,7 @@ app.app_logo = function(app,x,y,w,h)
     render.setMaterial(computer.icon["chart_line_error"])
     render.drawTexturedRect(x,y,w,h)
     render.setMaterial()
-    
+
     render.setFilterMag(3)
     render.setFilterMin(3)
 end

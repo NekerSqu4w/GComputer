@@ -4,16 +4,16 @@
 
 //by - Luiz thx to him
 --@include lib/sfui/sfui.lua
---@include lib/sfui/components/component.lua
---@include lib/sfui/components/window.lua
---@include lib/sfui/components/checkbox.lua
---@include lib/sfui/components/button.lua
---@include lib/sfui/components/progress.lua
---@include lib/sfui/components/slider.lua
---@include lib/sfui/components/label.lua
---@include lib/sfui/components/list.lua
---@include lib/sfui/components/radio.lua
---@include lib/sfui/components/textbox.lua
+--@include lib/sfui/components/component.txt
+--@include lib/sfui/components/window.txt
+--@include lib/sfui/components/checkbox.txt
+--@include lib/sfui/components/button.txt
+--@include lib/sfui/components/progress.txt
+--@include lib/sfui/components/slider.txt
+--@include lib/sfui/components/label.txt
+--@include lib/sfui/components/list.txt
+--@include lib/sfui/components/radio.txt
+--@include lib/sfui/components/textbox.txt
 
 --@includedir theme
 
@@ -21,28 +21,26 @@
 --@include lib/multiple_screen.lua
 --@include lib/console.txt
 
---@include lib/player_data.txt
-require("lib/player_data.txt")
-    
 if CLIENT then
     //import ui lib
     require("lib/sfui/sfui.lua")
-    require("lib/sfui/components/component.lua")
-    require("lib/sfui/components/window.lua")
-    require("lib/sfui/components/button.lua")
-    require("lib/sfui/components/checkbox.lua")
-    require("lib/sfui/components/progress.lua")
-    require("lib/sfui/components/slider.lua")
-    require("lib/sfui/components/label.lua")
-    require("lib/sfui/components/list.lua")
-    require("lib/sfui/components/radio.lua")
-    require("lib/sfui/components/textbox.lua")
+    require("lib/sfui/components/component.txt")
+    require("lib/sfui/components/window.txt")
+    require("lib/sfui/components/button.txt")
+    require("lib/sfui/components/checkbox.txt")
+    require("lib/sfui/components/progress.txt")
+    require("lib/sfui/components/slider.txt")
+    require("lib/sfui/components/label.txt")
+    require("lib/sfui/components/list.txt")
+    require("lib/sfui/components/radio.txt")
+    require("lib/sfui/components/textbox.txt")
 
     another_render = require("lib/another_render.txt")
     local msl = require("lib/multiple_screen.lua")
     console = require("lib/console.txt")
 
     computer = {}
+    computer.version = "1.0Beta"
     computer.settings = {}
     computer.material = {}
     computer.interface = {}
@@ -71,15 +69,25 @@ if CLIENT then
     }
     
     computer.save_data = {}
-    getPData(player(),function(receive_data)
-        computer.save_data = receive_data
-        computer.current_theme = computer.theme[computer.save_data.use_theme or "GComputer/theme/original.txt"].use()
-        console.log({Color(80,255,80),"Receiving player data.."})
-    end)
-    timer.create("startsaving",15,0,function()
-        savePData(player(),computer.save_data)
-        console.log({Color(80,255,80),"Saving player data.."})
-    end)
+    computer.current_theme = computer.theme["GComputer/theme/original.txt"].use()
+    function start_saving_loop()
+        if not computer.save_data.custom_background then computer.save_data.custom_background = {} end
+
+        for i, url_or_data64 in pairs(computer.save_data.custom_background) do
+            id = computer.save_data.custom_background[i]
+            local mat = material.create("UnlitGeneric")
+            mat:setTextureURL("$basetexture", url_or_data64, function(_,_,_,_,layout) layout(0, 0, 1024, 1024) end)
+            
+            computer.material.background[id] = mat
+            console.log({Color(80,255,80),"Imported custom background ",Color(80,255,255),"'"..id.."'"})
+        end
+        
+        file.createDir("GComputer/")
+        timer.create("startsaving",15,0,function()
+            file.write("GComputer/desktop.txt",json.encode(computer.save_data))
+            console.log({Color(80,255,80),"Saving player configuration.."})
+        end)
+    end
 
     function utcOffsetToRealtime(id)
         local timeInSec = 0
@@ -145,7 +153,7 @@ if CLIENT then
         hook.remove("ms_render1",last_interface)
         hook.remove("ms_render2",last_interface)
         hook.add("render",name,function()
-            msl.update(true) //msl.update(show_id)
+            msl.update(false) //msl.update(show_id)
             if computer.current_theme and computer.current_theme.update then computer.current_theme.update() end
 
             computer.ram.usage = math.round(ramUsed(),2)
@@ -175,47 +183,99 @@ if CLIENT then
             end
         end)
 
-        hook.add("console_log","",function(log) end)
+        local redraw_log = false
+        hook.add("console_log","",function(log) redraw_log = true end)
         hook.add("console_error","",function(error) end)
         hook.add("console_clear","",function() end)
+            
+        if not render.renderTargetExists("log_rt") then render.createRenderTarget("log_rt") end
 
         hook.add("ms_render2",name,function()
-            render.setFont(computer.font.bios_font)
-            --[[
-            render.setColor(Color(255,255,255))
-            for i=1, #computer.material.background do
-                render.setMaterial(computer.material.background[i])
-                render.drawTexturedRect(-80 + i*80,80,80,80)
-            end
-            render.setMaterial()
-            ]]
-
-            local cur_color = Color(255,255,255)
-            local move = -1
-            for id=#console.log_data, math.max(#console.log_data - 32, 1), -1 do
-                line = console.log_data[id]
-                move = move + 1
-                if type(line) == "table" then
-                    local next_width = 0
-                    for key, data in pairs(line) do
-                        if type(data) == "Color" then cur_color = data else
-                            local add_width = render.getTextSize(tostring(data))
-
-                            render.setColor(cur_color)
-                            render.drawText(5 + next_width,move * 15,tostring(data))
-                            next_width = next_width + add_width
+            if redraw_log then
+                render.selectRenderTarget("log_rt")
+                render.clear(Color(0,0,0,0))
+                
+                render.setFont(computer.font.bios_font)
+                local cur_color = Color(255,255,255)
+                local move = -1
+                for id=#console.log_data, math.max(#console.log_data - 32, 1), -1 do
+                    line = console.log_data[id]
+                    move = move + 1
+                    if type(line) == "table" then
+                        local next_width = 0
+                        for key, data in pairs(line) do
+                            if type(data) == "Color" then cur_color = data else
+                                local add_width = render.getTextSize(tostring(data))
+    
+                                render.setColor(cur_color)
+                                render.drawText(5 + next_width,move * 15,tostring(data))
+                                next_width = next_width + add_width
+                            end
                         end
+                    else
+                        render.setColor(Color(255,255,255))
+                        render.drawText(5,move * 15,tostring(line))
                     end
-                else
-                    render.setColor(Color(255,255,255))
-                    render.drawText(5,move * 15,tostring(line))
                 end
+                render.selectRenderTarget()
+                redraw_log = false
             end
+            
+            render.setColor(Color(255,255,255))
+            render.setRenderTargetTexture("log_rt")
+            render.drawTexturedRect(0,0,1024,1024)
+            render.setRenderTargetTexture()
         end)
         
         last_interface = name
     end
 
-    load_interface("bios")
-    --load_interface("debug")
+    //check version
+    if player() == owner() then
+        http.get("https://github.com/NekerSqu4w/GComputer/blob/main/version.txt?raw=true",function(response)
+            if response == computer.version then
+            else print(Color(70,255,70),"[GComputer] A new update is available (" .. response .. ")\nDownload it here: https://github.com/NekerSqu4w/GComputer") end
+        end)
+    end
+
+    local check_perms = {"file.write","file.read"}
+    local has_permission = true
+    for key, perm_id in pairs(check_perms) do
+        if hasPermission(perm_id) then else
+            has_permission = false
+            break
+        end
+    end
+
+    local default_load = "bios"
+    if has_permission then
+        computer.save_data = json.decode(file.read("GComputer/desktop.txt") or "{}")
+        console.log({Color(80,255,80),"Reading player configuration.."})
+
+        load_interface(default_load)
+        start_saving_loop()
+    else
+        setupPermissionRequest(check_perms, "some permission to access all of GComputer", true)
+        
+        computer.font.permission = render.createFont("FontAwesome",35,600,true,false,false,false,0,false,0)
+        hook.add("render","noperm_message",function()
+            render.setFont(computer.font.permission)
+            render.drawSimpleText(10,0,"Wanna access GComputer?")
+            render.drawSimpleText(10,35,"You need to accept some permission i need to run properly.")
+            render.drawSimpleText(10,70,"To accept the permission press 'use key' on this screen.")
+        end)
+        
+        hook.add("permissionrequest", "perms", function()
+            if permissionRequestSatisfied() then
+                hook.remove("permissionrequest", "perms")
+                hook.remove("render", "noperm_message")
+
+                computer.save_data = json.decode(file.read("GComputer/desktop.txt") or "{}")
+                console.log({Color(80,255,80),"Reading player configuration.."})
+            
+                load_interface(default_load)
+                start_saving_loop()
+            end
+        end)
+    end
 end
