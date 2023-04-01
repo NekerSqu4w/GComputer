@@ -60,6 +60,9 @@ app.add_render = function(window,app,x,y,w,h)
     window.radioB.pos.x = w - 150
     window.radioC.pos.x = w - 150
     window.radioD.pos.x = w - 150
+    
+    render.setColor(Color(255,0,0))
+    render.drawRect(x, y + h/2, 64, 64)
 end
     
 return app

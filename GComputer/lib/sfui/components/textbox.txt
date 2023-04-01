@@ -36,11 +36,19 @@ function Textbox:render(cursor, action)
     self:updateTrimmed()
     local usehint = self.text:len() == 0
 
-    render.setColor(self.hover and self.palette.contrast or self.palette.component)
-    render.drawRectFast(self.mins.x, self.mins.y, self.size.x, self.size.y)
-
-    render.setColor(self.active and self.typing and self.palette.highlight or self.palette.contrast)
-    render.drawRectOutline(self.mins.x, self.mins.y, self.size.x, self.size.y)
+    if type(self.paint) == "function" then
+        self.paint(self)
+    else
+        if type(self.override_design) == "function" then
+            self.override_design(self)
+        else
+            render.setColor(self.hover and self.palette.contrast or self.palette.component)
+            render.drawRectFast(self.mins.x, self.mins.y, self.size.x, self.size.y)
+        
+            render.setColor(self.active and self.typing and self.palette.highlight or self.palette.contrast)
+            render.drawRectOutline(self.mins.x, self.mins.y, self.size.x, self.size.y)
+        end
+    end
 
     -- Active status
     -- 1: Clicked, didn't start typing
@@ -66,9 +74,14 @@ function Textbox:render(cursor, action)
         end
     end
 
-    render.setColor(usehint and self.palette.contrast or self.palette.foreground)
-    render.drawSimpleText(self.mins.x + self.size.x * 0.05, self.center.y, (usehint and not self.hover) and self.trimmed.hint or self.trimmed.text, nil, TEXT_ALIGN.CENTER)
-
+    if type(self.paint) == "function" then
+    else
+        if type(self.override_design) == "function" then
+        else
+            render.setColor(usehint and self.palette.contrast or self.palette.foreground)
+            render.drawSimpleText(self.mins.x + self.size.x * 0.05, self.center.y, (usehint and not self.hover) and self.trimmed.hint or self.trimmed.text, nil, TEXT_ALIGN.CENTER)
+        end
+    end
     SFUi.component.render(self, cursor, action) 
 end
 

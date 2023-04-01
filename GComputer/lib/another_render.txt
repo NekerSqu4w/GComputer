@@ -5,10 +5,7 @@ local tex_corner64 = material.load("gui/corner64")
 local tex_corner512 = material.load("gui/corner512")
 
 //a modification of the default roundedBox system
-function RoundedBox(x, y, w, h, borderradius)
-    return RoundedBoxEx(x, y, w, h, borderradius, borderradius, borderradius, borderradius)
-end
-function RoundedBoxEx(x, y, w, h, btl, btr, bbl, bbr)
+local function RoundedBoxEx(x, y, w, h, btl, btr, bbl, bbr)
     if btl == nil then btl = 0 end
     if btr == nil then btr = 0 end
     if bbl == nil then bbl = 0 end
@@ -52,12 +49,12 @@ function RoundedBoxEx(x, y, w, h, btl, btr, bbl, bbr)
         render.drawRect(x + w - w/2,y + h - h/2,w/2,h/2)
     end
 end
+local function RoundedBox(x, y, w, h, borderradius)
+    return RoundedBoxEx(x, y, w, h, borderradius, borderradius, borderradius, borderradius)
+end
 
 //the original roundedBox code but with a bit modification
-function RoundedBox2(bordersize, x, y, w, h)
-    return RoundedBoxEx2(bordersize, x, y, w, h, true, true, true, true)
-end
-function RoundedBoxEx2(bordersize, x, y, w, h, tl, tr, bl, br)
+local function RoundedBoxEx2(bordersize, x, y, w, h, tl, tr, bl, br)
     if (bordersize <= 0) then
         render.drawRect(x, y, w, h)
         return
@@ -100,11 +97,11 @@ function RoundedBoxEx2(bordersize, x, y, w, h, tl, tr, bl, br)
     end
     render.setMaterial()
 end
-
-function RoundedBoxOutline(radius, x, y, w, h)
-    return RoundedBoxOutlineEx(radius, x, y, w, h, true, true, true, true)
+local function RoundedBox2(bordersize, x, y, w, h)
+    return RoundedBoxEx2(bordersize, x, y, w, h, true, true, true, true)
 end
-function RoundedBoxOutlineEx(radius,x,y,w,h, btl, btr, bbl, bbr)
+
+local function RoundedBoxOutlineEx(radius,x,y,w,h, btl, btr, bbl, bbr)
     if radius == nil then radius = 0 end
     radius = math.min(math.round(radius), w/2, h/2)
     
@@ -141,8 +138,11 @@ function RoundedBoxOutlineEx(radius,x,y,w,h, btl, btr, bbl, bbr)
         render.drawRect(x + w - w/2,y + h - h/2,w/2,h/2)
     end
 end
+local function RoundedBoxOutline(radius, x, y, w, h)
+    return RoundedBoxOutlineEx(radius, x, y, w, h, true, true, true, true)
+end
 
-function star(x,y,size,add_ang)
+local function star(x,y,size,add_ang)
     local number_of_spikes = 10
     local angle = math.pi * 2 / number_of_spikes
     local star = {}
@@ -157,7 +157,7 @@ function star(x,y,size,add_ang)
     render.drawPoly(star)
 end
 
-function drawStripLine(table)
+local function drawStripLine(table)
     local lx,ly = table[1].x, table[1].y
     for i=1, #table+1 do
         if i >= #table+1 then
@@ -173,5 +173,42 @@ function drawStripLine(table)
     end
 end
 
+local function drawLayoutText(x,y,layout_width,txt)
+    local splited_text = string.split(txt," ")
+    local next_width, next_height = 0, 0
+    for _, t in pairs(splited_text) do
+        local add_width, add_height = render.drawSimpleText(x+next_width, y+next_height, t .. " ", 0, 0)        
+        next_width = next_width + add_width
+        
+        local fix_width, _ = render.getTextSize((splited_text[_+1] or "") .. " ")
+        if next_width+fix_width > layout_width then
+            next_height = next_height + add_height
+            next_width = 0
+        end
+    end
 
-return {drawStripLine=drawStripLine,roundedBox=RoundedBox,roundedBoxEx=RoundedBoxEx,roundedBox2=RoundedBox2,roundedBoxEx2=RoundedBoxEx2,star=star,roundedBoxOutline=RoundedBoxOutline,roundedBoxOutlineEx=RoundedBoxOutlineEx}
+    local _, fix_height = render.getTextSize(" ")
+    next_height = next_height + fix_height
+
+    return layout_width, next_height
+end
+
+local function stencil_mask()
+    render.setStencilWriteMask(0xFF)
+    render.setStencilTestMask(0xFF)
+    render.setStencilReferenceValue(1)
+    render.setStencilCompareFunction(3)
+    render.setStencilPassOperation(STENCIL.REPLACE)
+    render.setStencilFailOperation(STENCIL.REPLACE)
+    render.setStencilZFailOperation(STENCIL.REPLACE)
+    render.clearStencil()
+    
+    render.setStencilEnable(true)
+    render.setStencilReferenceValue(1)
+    render.setStencilCompareFunction(STENCIL.REPLACE)
+end
+local function stencil_pop()
+    render.setStencilEnable(false)
+end
+
+return {drawLayoutText=drawLayoutText,stencil_mask=stencil_mask,stencil_pop=stencil_pop,drawStripLine=drawStripLine,roundedBox=RoundedBox,roundedBoxEx=RoundedBoxEx,roundedBox2=RoundedBox2,roundedBoxEx2=RoundedBoxEx2,star=star,roundedBoxOutline=RoundedBoxOutline,roundedBoxOutlineEx=RoundedBoxOutlineEx}

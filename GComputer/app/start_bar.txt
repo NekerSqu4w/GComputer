@@ -26,10 +26,13 @@ app.on_load = function(window,app)
     table.insert(window.button,SFUi.button(window,Vector(0, 0), Vector(120, 20), "Test button 4",function() end))
     table.insert(window.button,SFUi.button(window,Vector(0, 0), Vector(120, 20), "Test button 5",function() end))
 
-    window.pos = Vector(0,computer.resolution.y-app.size.y-45 - 1)
+    window.pos = Vector(1,computer.resolution.y-app.size.y-45 - 1)
 end
 
 app.app_logo = function(app,x,y,w,h)
+    render.setColor((computer.current_theme.main_color/2):setA(255))
+    another_render.star(x + w/2,y + w/2,w/2+1,0)
+    
     render.setColor(computer.current_theme.main_color)
     another_render.star(x + w/2,y + w/2,w/2,0)
 end

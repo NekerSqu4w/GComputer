@@ -1,0 +1,65 @@
+
+local function load_from_type(file2,window)
+    local data = {}
+    if file2.type == "folder" then
+        //check for folder
+        data.app = computer.app["GComputer/app/file_explorer.txt"]
+        data.open_app = "GComputer/app/file_explorer.txt"
+        data.file_info = file2
+        
+        if window and window.folder_path then
+            data.folder_path = window.folder_path .. file2.name .. "/"
+        else
+            data.folder_path = "GComputer/desktop/" .. file2.name .. "/"
+        end
+    end
+    if file2.type == "file" then
+        //check for all type of data
+        data.app = computer.app["GComputer/app/file.txt"]
+        data.open_app = "GComputer/app/file.txt"
+        data.file_info = file2
+
+        if window and window.folder_path then
+            data.modification_time = file.time(window.folder_path .. file2.name .. "/")
+        else
+            data.modification_time = file.time("GComputer/desktop/" .. file2.name .. "/")
+        end
+
+        //check for app
+        if string.endsWith(file2.name, ".dat") then
+            if string.startWith(file2.content,"start_system_app") then
+                data.app = computer.app[string.replace(file2.content,"start_system_app ","")]
+                data.open_app = string.replace(file2.content,"start_system_app ","")
+                data.is_custom_code = false
+            else
+                //executed but doesn't open window
+                //used to execute app code
+                data.app = loadstring(file2.content)()
+                data.open_app = data.app
+                data.is_custom_code = true
+            end
+            data.file_info = file2
+            data.file_info.type = "app"
+        end
+        
+        //check for type of photo
+        if string.endsWith(file2.name, ".png") or string.endsWith(file2.name, ".jpg") or string.endsWith(file2.name, ".jpeg") then
+            data.app = computer.app["GComputer/app/photo.txt"]
+            data.open_app = "GComputer/app/photo.txt"
+            data.file_info = file2
+            data.file_info.type = "photo"
+        end
+    end
+    return data
+end
+
+local function on_open(from,cur_app)
+    if from.file_info.type == "folder" then
+        cur_app.file_info = from.file_info
+        cur_app.folder_path = from.folder_path
+    end
+    if from.file_info.type == "file" then cur_app.file_info = from.file_info end
+    if from.file_info.type == "photo" then cur_app.file_info = from.file_info end
+end
+
+return {on_open=on_open,load_from_type=load_from_type}

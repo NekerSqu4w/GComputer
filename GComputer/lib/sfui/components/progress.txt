@@ -14,7 +14,7 @@ function Progress:render(cursor, action)
         else
             render.setColor(self.palette.component)
             render.drawRectFast(self.mins.x, self.mins.y, self.size.x, self.size.y)
-        
+
             render.setColor(self.palette.highlight)
             if self.value then
                 render.drawRectFast(self.mins.x, self.mins.y, self.size.x * math.clamp(self.value, 0, 1), self.size.y)
@@ -30,7 +30,7 @@ function Progress:render(cursor, action)
                     render.drawRectFast(self.mins.x, self.mins.y, size - t_size, self.size.y)
                 end
             end
-        
+
             render.setColor(self.palette.contrast)
             render.drawRectOutline(self.mins.x, self.mins.y, self.size.x, self.size.y)
         end

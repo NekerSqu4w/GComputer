@@ -99,18 +99,37 @@ function Window:render(cursor, action)
             render.setColor(self.palette.foreground)
             render.drawSimpleText(self.mins.x + 5, self.mins.y, self.title, TEXT_ALIGN.LEFT, TEXT_ALIGN.TOP)
 
-            if self.closehides ~= nil then
+            //close
+            if self.closehides then
                 render.setColor(self.extrahover.close and Color(255,70,70) or Color(0,0,0,0))
                 render.drawRect(self.mins.x + self.size.x - self.barheight, self.mins.y, self.barheight, self.barheight)
-        
+            
                 render.setColor((self.extrahover.close and self.action.held) and self.palette.highlight or self.palette.foreground)
                 render.drawLine(self.mins.x + self.size.x - self.barheight * 0.75, self.mins.y + self.barheight * 0.25, self.mins.x + self.size.x - self.barheight * 0.25, self.mins.y + self.barheight * 0.75)
                 render.drawLine(self.mins.x + self.size.x - self.barheight * 0.75, self.mins.y + self.barheight * 0.75, self.mins.x + self.size.x - self.barheight * 0.25, self.mins.y + self.barheight * 0.25)
             end
+            //
+    
+            //maximise
+            if self.can_maximise and self.resizable then
+                render.setColor(self.maximise_hover and self.palette.highlight or Color(0,0,0,0))
+                render.drawRect(self.mins.x + self.size.x - self.barheight*2, self.mins.y, self.barheight, self.barheight)
+        
+                render.setColor(Color(255,255,255))
+                    
+                local start_pos = Vector(self.mins.x + 2 + self.size.x - self.barheight*2,self.mins.y+4)
+                another_render.drawStripLine({
+                    start_pos,
+                    start_pos + Vector(self.barheight-5,0),
+                    start_pos + Vector(self.barheight-5,self.barheight-8),
+                    start_pos + Vector(0,self.barheight-8)
+                })
+            end
+            //
     
             if self.resizable then
                 render.setColor((self.resize_hover or self.hold_resize) and self.palette.highlight or Color(0,0,0,0))
-                render.drawRect(self.mins.x + self.size.x - self.barheight, self.mins.y + self.size.y - self.barheight, self.barheight, self.barheight)
+                another_render.roundedBoxEx(self.mins.x + self.size.x - self.barheight, self.mins.y + self.size.y - self.barheight, self.barheight, self.barheight, 0, 0, 0, 5)
                 
                 render.setColor(Color(255,255,255))
                 for i=1, 4 do
@@ -122,21 +141,6 @@ function Window:render(cursor, action)
                     
                     render.drawLine(cx + x1,cy + y1,cx + x2,cy + y2)
                 end
-            end
-    
-            if self.can_maximise and self.resizable then
-                render.setColor(self.maximise_hover and self.palette.highlight or Color(0,0,0,0))
-                render.drawRect(self.mins.x + self.size.x - self.barheight*2, self.mins.y, self.barheight, self.barheight)
-                
-                render.setColor(Color(255,255,255))
-                
-                local start_pos = Vector(self.mins.x + 2 + self.size.x - self.barheight*2,self.mins.y+4)
-                another_render.drawStripLine({
-                    start_pos,
-                    start_pos + Vector(self.barheight-5,0),
-                    start_pos + Vector(self.barheight-5,self.barheight-8),
-                    start_pos + Vector(0,self.barheight-8)
-                })
             end
         end
     end

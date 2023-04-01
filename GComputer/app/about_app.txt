@@ -38,8 +38,7 @@ app.on_load = function(window,app)
         window.info_label[5].content = {computer.current_theme.main_color,"Is resizable: ",Color(255,255,255),window.selected_app.resizable}
         window.info_label[6].content = {computer.current_theme.main_color,"Has mulitple instance: ",Color(255,255,255),window.selected_app.multiple_open}
         window.info_label[7].content = {computer.current_theme.main_color,"Can be close: ",Color(255,255,255),window.selected_app.close_btn}
-        window.info_label[8].content = {computer.current_theme.main_color,"Metadata size: ",Color(255,255,255),string.niceSize(#table.toString(window.selected_app))}
-        
+        window.info_label[8].content = {computer.current_theme.main_color,"Metadata size: ",Color(255,255,255),string.niceSize(#table.toString(window.selected_app))}    
 
         window.info_label[9].content = {computer.current_theme.main_color,"Description: "}
         

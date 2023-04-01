@@ -12,11 +12,12 @@ function update(show_id)
 
     my_lib.res = {}
     my_lib.res.w,my_lib.res.h = render.getResolution()
-    my_lib.screen_index = my_lib.screen_ent[render.getScreenEntity()]
+    my_lib.screen_index = my_lib.screen_ent[render.getScreenEntity()] or 0
     
 
     my_lib.cursor = {visible=true}
-    my_lib.cursor.x, my_lib.cursor.y = render.cursorPos(player())
+    if render.getScreenEntity() then my_lib.cursor.x, my_lib.cursor.y = render.cursorPos(player())
+    else my_lib.cursor.x, my_lib.cursor.y = input.getCursorPos() end
     if my_lib.cursor.x == nil or my_lib.cursor.y == nil then my_lib.cursor = {x=0,y=0,visible=false} end
     
     //run the hook

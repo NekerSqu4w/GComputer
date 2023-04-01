@@ -1,7 +1,7 @@
 local app = {}
 
 app.title = "Task manager"
-app.version = 1.0
+app.version = 1.01
 app.author = "Neker's Industry's"
 app.description = "Manage application and manage cpu usage"
 
@@ -21,38 +21,33 @@ app.end_task_btn = {}
 app.last_check_num = 0
 
 app.reload_app_list = function(window,app)
-    window.end_task_btn = {}
-
-    local remove_list = {}
-    for id, btn in pairs(window.children) do
-        if btn.id and btn.id == "end_task" then
-            table.insert(remove_list,id)
+    for id, child in pairs(window.children) do
+        if child.id == "end_task" then
+            window.children[id] = nil
         end
     end
-    for key, id in pairs(remove_list) do table.remove(window.children,id) end
+    window.end_task_btn = {}
 
-    --local unlist = {"gcomputer_startbar"}
+    local unlist = {"gcomputer_startbar"}
     for id, capp in pairs(computer.created_app) do
-        --if unlist[capp.app_id] then continue end
-        window.end_task_btn[id] = SFUi.button(window, Vector(0,0), Vector(70, 20), "End task", function(me)
-            computer.GComputer_gui:removeComponent(capp)
+        if unlist[capp.app_id] then continue end
+        window.end_task_btn[id] = SFUi.button(window, Vector(0,0), Vector(70, 20), "End Task", function(me)
+            computer.GComputer_gui:removeComponent(me.linked_app)
         end)
         window.end_task_btn[id].id = "end_task"
+        window.end_task_btn[id].linked_app = capp
         window.end_task_btn[id].id_name = capp.title
         window.end_task_btn[id].paint = function(self)
-            render.setColor(self.hover and self.palette.highlight or self.palette.component)
+            render.setColor(self.hover and Color(255,255,255,50) or Color(255,255,255,10))
             render.drawRect(self.mins.x-1, self.mins.y-1, self.size.x+2, self.size.y+2)
             
-            render.setColor(self.action.held and self.palette.highlight or self.palette.contrast)
-            render.drawRect(self.mins.x, self.mins.y, self.size.x, self.size.y)
+            --render.setColor(self.action.held and self.palette.highlight or self.palette.contrast)
+            --render.drawRect(self.mins.x, self.mins.y, self.size.x, self.size.y)
 
             render.setColor(self.action.held and Color(0,0,0) or self.palette.foreground)
             render.drawSimpleText(self.center.x, self.center.y, self.text, TEXT_ALIGN.CENTER, TEXT_ALIGN.CENTER)
         end
     end
-
-    //when adding other components it's buged
-    //SFUi.button(window, Vector(0,0), Vector(120, 50), "Test button")
 end
 
 app.on_load = function(window,app)

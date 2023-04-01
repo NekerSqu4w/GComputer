@@ -23,8 +23,8 @@ app.choose_theme_btn = {}
 app.on_load = function(window,app)
     for id, mat in pairs(computer.material.background) do
         window.app.choose_back_btn[id] = SFUi.button(window, Vector(0,0), Vector(70, 70), "", function(me)
-            computer.save_data.use_background = me.background_id
-            console.log({Color(80,255,80),"Change background to ",Color(80,255,255),"'"..computer.save_data.use_background.."'"})
+            computer.save_data.settings.use_background = me.background_id
+            console.log({Color(80,255,80),"Change background to ",Color(80,255,255),"'"..computer.save_data.settings.use_background.."'"})
         end)
         window.app.choose_back_btn[id].background_id = id
         window.app.choose_back_btn[id].paint = function(self)
@@ -47,9 +47,9 @@ app.on_load = function(window,app)
     
     for path, data in pairs(computer.theme) do
         window.app.choose_theme_btn[path] = SFUi.button(window, Vector(0,0), Vector(120, 30), data.theme.name, function(me)
-            computer.save_data.use_theme = me.theme_id
-            computer.current_theme = computer.theme[computer.save_data.use_theme].use()
-            console.log({Color(80,255,80),"Change theme to ",Color(80,255,255),"'"..computer.save_data.use_theme.."'"})
+            computer.save_data.settings.use_theme = me.theme_id
+            computer.current_theme = computer.theme[computer.save_data.settings.use_theme].use()
+            console.log({Color(80,255,80),"Change theme to ",Color(80,255,255),"'"..computer.save_data.settings.use_theme.."'"})
             
             --this system is bad because it's can replace any color, same with custom element color
             for key, win in pairs(computer.appbar_gui.components) do
@@ -99,7 +99,7 @@ app.add_render = function(window,app,x,y,w,h)
             grid_x = 0
         end
         btn.pos = Vector(10 + grid_x * 80,40 + next_height + grid_y * 80)
-        if id == computer.save_data.use_background then btn.back_selected = true else btn.back_selected = false end
+        if id == computer.save_data.settings.use_background then btn.back_selected = true else btn.back_selected = false end
     end
     next_height = next_height + 80 + 20 + grid_y * 80
     

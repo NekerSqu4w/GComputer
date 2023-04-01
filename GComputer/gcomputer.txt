@@ -18,8 +18,9 @@
 --@includedir theme
 
 --@include lib/another_render.txt
---@include lib/multiple_screen.lua
+--@include lib/multiple_screen.txt
 --@include lib/console.txt
+--@include lib/file_type.txt
 
 if CLIENT then
     //import ui lib
@@ -36,11 +37,11 @@ if CLIENT then
     require("lib/sfui/components/textbox.txt")
 
     another_render = require("lib/another_render.txt")
-    local msl = require("lib/multiple_screen.lua")
+    local msl = require("lib/multiple_screen.txt")
     console = require("lib/console.txt")
 
     computer = {}
-    computer.version = "1.0Beta"
+    computer.version = "1.0"
     computer.settings = {}
     computer.material = {}
     computer.interface = {}
@@ -50,6 +51,7 @@ if CLIENT then
     computer.time = {}
     computer.clock = {}
     computer.cursor = {}
+    computer.file_type = require("lib/file_type.txt")
 
     computer.resolution = Vector(512,512)
     computer.app = {}
@@ -67,8 +69,8 @@ if CLIENT then
         "06:00","06:30","07:00","08:00","08:45","09:00","10:00","10:30",
         "11:00","12:00","12:45","13:00","14:00"
     }
-    
-    computer.save_data = {}
+
+    computer.save_data = {settings={}}
     computer.current_theme = computer.theme["GComputer/theme/original.txt"].use()
     function start_saving_loop()
         if not computer.save_data.custom_background then computer.save_data.custom_background = {} end
@@ -81,12 +83,42 @@ if CLIENT then
             computer.material.background[id] = mat
             console.log({Color(80,255,80),"Imported custom background ",Color(80,255,255),"'"..id.."'"})
         end
-        
+
         file.createDir("GComputer/")
         timer.create("startsaving",15,0,function()
-            file.write("GComputer/desktop.txt",json.encode(computer.save_data))
+            file.write("GComputer/settings.txt",json.encode(computer.save_data.settings))
+            file.write("GComputer/custom_background.txt",json.encode(computer.save_data.custom_background))
             console.log({Color(80,255,80),"Saving player configuration.."})
         end)
+        
+        if not file.exists("GComputer/desktop") then
+        file.createDir("GComputer/desktop/")
+        file.createDir("GComputer/desktop/test folder")
+        //generate default app
+        local remove = {["gcomputer_startbar"]=true,["gcomputer_file"]=true,["gcomputer_fileexplorer"]=true}
+            for id, app in pairs(computer.app) do
+                if remove[app.app_id] then
+                else
+                    file.write("GComputer/desktop/"..app.title..".dat","start_system_app " .. id)
+                end
+            end
+            file.write("GComputer/desktop/test folder/test file into folder.txt","Some data into a file :d")
+            file.write("GComputer/desktop/test file.txt","You gay :d")
+        end
+        computer.save_data.desktop_file = load_folder_content("GComputer/desktop/*")
+    end
+    
+    function load_folder_content(path)
+        local file_, folder_ = file.find(path)
+
+        local folder_list = {}
+        for id, name in pairs(folder_) do
+            table.insert(folder_list,{type="folder",name=name})
+        end
+        for id, name in pairs(file_) do
+            table.insert(folder_list,{type="file",name=name,content=file.read(string.sub(path,0,#path-1) .. "" .. name)})
+        end
+        return folder_list
     end
 
     function utcOffsetToRealtime(id)
@@ -116,7 +148,7 @@ if CLIENT then
         {x=0.9, y=2.1},
         {x=0.1, y=4},
     }
-        
+
     function getMouse(curX, curY, scale)
         local copyMouse = table.copy(cursor)
 
@@ -142,11 +174,15 @@ if CLIENT then
     
     --@include debug.txt
     computer.interface.debug = require("debug.txt")
+    
+    --@include bsod.txt
+    computer.interface.bsod = require("bsod.txt")
 
     local last_interface = ""
-    function load_interface(name)
+    function load_interface(name,attributes)
+        console.log({Color(80,255,80),"Started " .. name .. ".txt"})
         if computer.interface[name].init then
-            computer.interface[name].init_data = computer.interface[name].init(computer)
+            computer.interface[name].init_data = computer.interface[name].init(computer,attributes)
         end
 
         hook.remove("render",last_interface)
@@ -158,14 +194,14 @@ if CLIENT then
 
             computer.ram.usage = math.round(ramUsed(),2)
             computer.ram.max = math.round(ramMax(),2)
-            
+
             computer.cpu.usage = math.round(cpuAverage()*1000000,2)
             computer.cpu.max = math.round(cpuMax()*1000000,2)
 
-            computer.time = os.date("*t",os.time())
-
+            computer.time = {}
             if computer.save_data and computer.save_data.utc_id then computer.time.realtime = os.time() + utcOffsetToRealtime(computer.save_data.utc_id)
-            else computer.time.realtime = os.time() + utcOffsetToRealtime(15)  end
+            else computer.time.realtime = os.time() + utcOffsetToRealtime(15) end
+            computer.time.realtime = computer.time.realtime - 3600
             computer.time.sec = computer.time.realtime%60
             computer.time.min = ((computer.time.realtime/60)%60)
             computer.time.hour = ((computer.time.realtime/3600)%24)
@@ -189,7 +225,6 @@ if CLIENT then
         hook.add("console_clear","",function() end)
             
         if not render.renderTargetExists("log_rt") then render.createRenderTarget("log_rt") end
-
         hook.add("ms_render2",name,function()
             if redraw_log then
                 render.selectRenderTarget("log_rt")
@@ -233,12 +268,13 @@ if CLIENT then
     //check version
     if player() == owner() then
         http.get("https://github.com/NekerSqu4w/GComputer/blob/main/version.txt?raw=true",function(response)
+            response = string.replace(response,"\n","") //because github add automatically new line for no reason..
             if response == computer.version then
-            else print(Color(70,255,70),"[GComputer] A new update is available (" .. response .. ")\nDownload it here: https://github.com/NekerSqu4w/GComputer") end
+            else print(Color(70,255,70),"[GComputer] A new update is available (ver. " .. response .. ")\nDownload it here: https://github.com/NekerSqu4w/GComputer") end
         end)
     end
 
-    local check_perms = {"file.write","file.read"}
+    local check_perms = {"file.write","file.read","file.find","file.exists"}
     local has_permission = true
     for key, perm_id in pairs(check_perms) do
         if hasPermission(perm_id) then else
@@ -249,11 +285,13 @@ if CLIENT then
 
     local default_load = "bios"
     if has_permission then
-        computer.save_data = json.decode(file.read("GComputer/desktop.txt") or "{}")
+        computer.save_data.settings = json.decode(file.read("GComputer/settings.txt") or "{}")
+        computer.save_data.custom_background = json.decode(file.read("GComputer/custom_background.txt") or "{}")
+        computer.save_data.desktop_file = load_folder_content("GComputer/desktop/*")
+
         console.log({Color(80,255,80),"Reading player configuration.."})
 
         load_interface(default_load)
-        start_saving_loop()
     else
         setupPermissionRequest(check_perms, "some permission to access all of GComputer", true)
         
@@ -270,11 +308,13 @@ if CLIENT then
                 hook.remove("permissionrequest", "perms")
                 hook.remove("render", "noperm_message")
 
-                computer.save_data = json.decode(file.read("GComputer/desktop.txt") or "{}")
+                computer.save_data.settings = json.decode(file.read("GComputer/settings.txt") or "{}")
+                computer.save_data.custom_background = json.decode(file.read("GComputer/custom_background.txt") or "{}")
+                computer.save_data.desktop_file = load_folder_content("GComputer/desktop/*")
+        
                 console.log({Color(80,255,80),"Reading player configuration.."})
             
                 load_interface(default_load)
-                start_saving_loop()
             end
         end)
     end
