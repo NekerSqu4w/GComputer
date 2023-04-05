@@ -105,6 +105,9 @@ function init()
         
         render.setColor(self.action.held and self.palette.highlight or self.palette.contrast)
         another_render.roundedBox2(5,self.mins.x, self.mins.y, self.size.x, self.size.y)
+        
+        render.setColor(self.action.held and Color(0,0,0) or self.palette.foreground)
+        render.drawSimpleText(self.center.x, self.center.y, self.text, TEXT_ALIGN.CENTER, TEXT_ALIGN.CENTER)
     end
     
     function ui.textbox.override_design(self)

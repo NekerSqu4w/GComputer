@@ -45,6 +45,7 @@ end
 //use only if you need to draw another thing that not in SFUi lib
 //Like a simple rect, roundedbox or polygon etc..
 app.add_render = function(window,app,x,y,w,h)
+    window.title = computer.lang.query_word("clock.name")
     //draw clock
     local clock_pos = window.pos:clone()
     clock_pos.x = clock_pos.x + 120
@@ -140,8 +141,7 @@ app.add_render = function(window,app,x,y,w,h)
 
     render.setFont(app.date_font)
     render.setColor(computer.current_theme.main_color)
-    render.drawSimpleText(x + w-10,y+10 + 30,os.date("%a",computer.time.realtime) .. ". " .. os.date("%d",computer.time.realtime) .. " " .. os.date("%B",computer.time.realtime),2)
-
+    render.drawSimpleText(x + w-10,y+10 + 30,computer.lang.query_word("clock.day."..os.date("%w",computer.time.realtime)) .. " " .. os.date("%d",computer.time.realtime) .. " " .. computer.lang.query_word("clock.month."..os.date("%m",computer.time.realtime)),2)
 
     render.setFont(computer.font.gui_font)
 end

@@ -21,6 +21,7 @@
 --@include lib/multiple_screen.txt
 --@include lib/console.txt
 --@include lib/file_type.txt
+--@include lib/lang.txt
 
 if CLIENT then
     //import ui lib
@@ -41,7 +42,7 @@ if CLIENT then
     console = require("lib/console.txt")
 
     computer = {}
-    computer.version = "1.0"
+    computer.version = "1.01"
     computer.settings = {}
     computer.material = {}
     computer.interface = {}
@@ -52,6 +53,7 @@ if CLIENT then
     computer.clock = {}
     computer.cursor = {}
     computer.file_type = require("lib/file_type.txt")
+    computer.lang = require("lib/lang.txt")
 
     computer.resolution = Vector(512,512)
     computer.app = {}
@@ -70,10 +72,29 @@ if CLIENT then
         "11:00","12:00","12:45","13:00","14:00"
     }
 
-    computer.save_data = {settings={}}
+    computer.save_data = {settings={event={}}}
     computer.current_theme = computer.theme["GComputer/theme/original.txt"].use()
+
+    function computer.create_default_data()
+        file.createDir("GComputer/desktop/")
+        file.createDir("GComputer/desktop/test folder")
+        //generate default app
+        local remove = {["gcomputer_startbar"]=true,["gcomputer_file"]=true,["gcomputer_fileexplorer"]=true}
+        for id, app in pairs(computer.app) do
+            if remove[app.app_id] then
+            else
+                file.write("GComputer/desktop/"..app.title..".dat","//type 1\nopen " .. id)
+            end
+        end
+        file.write("GComputer/desktop/test folder/test file into folder.txt","Some data into a file :d")
+        file.write("GComputer/desktop/test file.txt","Hello world, this is a test file")
+    end
+
     function start_saving_loop()
         if not computer.save_data.custom_background then computer.save_data.custom_background = {} end
+        if not computer.save_data.settings.lang then computer.save_data.settings.lang = "en" end
+        if not computer.save_data.settings.event then computer.save_data.settings.event = {} end
+        computer.lang.load_lang(computer.save_data.settings.lang)
 
         for i, url_or_data64 in pairs(computer.save_data.custom_background) do
             id = computer.save_data.custom_background[i]
@@ -83,31 +104,18 @@ if CLIENT then
             computer.material.background[id] = mat
             console.log({Color(80,255,80),"Imported custom background ",Color(80,255,255),"'"..id.."'"})
         end
-
+        
         file.createDir("GComputer/")
+        if not file.exists("GComputer/desktop") then computer.create_default_data() end
         timer.create("startsaving",15,0,function()
             file.write("GComputer/settings.txt",json.encode(computer.save_data.settings))
             file.write("GComputer/custom_background.txt",json.encode(computer.save_data.custom_background))
             console.log({Color(80,255,80),"Saving player configuration.."})
         end)
-        
-        if not file.exists("GComputer/desktop") then
-        file.createDir("GComputer/desktop/")
-        file.createDir("GComputer/desktop/test folder")
-        //generate default app
-        local remove = {["gcomputer_startbar"]=true,["gcomputer_file"]=true,["gcomputer_fileexplorer"]=true}
-            for id, app in pairs(computer.app) do
-                if remove[app.app_id] then
-                else
-                    file.write("GComputer/desktop/"..app.title..".dat","start_system_app " .. id)
-                end
-            end
-            file.write("GComputer/desktop/test folder/test file into folder.txt","Some data into a file :d")
-            file.write("GComputer/desktop/test file.txt","You gay :d")
-        end
+
         computer.save_data.desktop_file = load_folder_content("GComputer/desktop/*")
     end
-    
+
     function load_folder_content(path)
         local file_, folder_ = file.find(path)
 
@@ -274,7 +282,7 @@ if CLIENT then
         end)
     end
 
-    local check_perms = {"file.write","file.read","file.find","file.exists"}
+    local check_perms = {"file.write","file.read","file.find","file.exists","file.time"}
     local has_permission = true
     for key, perm_id in pairs(check_perms) do
         if hasPermission(perm_id) then else
@@ -287,10 +295,8 @@ if CLIENT then
     if has_permission then
         computer.save_data.settings = json.decode(file.read("GComputer/settings.txt") or "{}")
         computer.save_data.custom_background = json.decode(file.read("GComputer/custom_background.txt") or "{}")
-        computer.save_data.desktop_file = load_folder_content("GComputer/desktop/*")
 
         console.log({Color(80,255,80),"Reading player configuration.."})
-
         load_interface(default_load)
     else
         setupPermissionRequest(check_perms, "some permission to access all of GComputer", true)
@@ -310,10 +316,8 @@ if CLIENT then
 
                 computer.save_data.settings = json.decode(file.read("GComputer/settings.txt") or "{}")
                 computer.save_data.custom_background = json.decode(file.read("GComputer/custom_background.txt") or "{}")
-                computer.save_data.desktop_file = load_folder_content("GComputer/desktop/*")
-        
+
                 console.log({Color(80,255,80),"Reading player configuration.."})
-            
                 load_interface(default_load)
             end
         end)

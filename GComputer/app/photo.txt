@@ -18,6 +18,16 @@ app.multiple_open = true
 app.app_id = "gcomputer_file"
 
 app.on_load = function(window,app)
+    window.reload_image = SFUi.button(window, Vector(0,0), Vector(70, 20), "Reload", function(me) window.has_set_img = false end)
+    window.reload_image.paint = function(self)
+        render.setColor(self.hover and Color(255,255,255,50) or Color(255,255,255,10))
+        render.drawRect(self.mins.x-1, self.mins.y-1, self.size.x+2, self.size.y+2)
+            
+        render.setColor(self.action.held and Color(0,0,0) or self.palette.foreground)
+        render.drawSimpleText(self.center.x, self.center.y, self.text, TEXT_ALIGN.CENTER, TEXT_ALIGN.CENTER)
+    end
+    window.reload_image.visible = false
+                
     window.pos = computer.resolution/2 - window.size/2
     
     window.cur_photo = nil
@@ -58,7 +68,8 @@ app.add_render = function(window,app,x,y,w,h)
 
             base64img = data_type .. http.base64Encode(window.file_info.content)
             if #base64img > convar.getInt("sf_render_maxdatamaterialsize") then
-                window.load_error = "Cannot load picture\nTexture Data too long!"
+                window.load_error = "Cannot load picture\nTexture Data too long!\n\nIf you wanna see it you can set\n'sf_render_maxdatamaterialsize "..(math.floor((#base64img+10000)/10000)*10000).."'\ninto console and press button to reload image."
+                window.reload_image.visible = true
             else
                 window.cur_photo = material.create("UnlitGeneric")
                 window.cur_photo:setTextureURL("$basetexture",base64img,function(_,_,w,h,layout)
@@ -72,6 +83,7 @@ app.add_render = function(window,app,x,y,w,h)
                     fh = fh * scl
                     layout(512 - fw/2,512 - fh/2,fw,fh)
                 end)
+                window.reload_image.visible = false
                 window.load_error = nil
             end
             window.has_set_img = true
@@ -83,10 +95,12 @@ app.add_render = function(window,app,x,y,w,h)
 
     if window.load_error then
         render.setColor(Color(255,255,255))
-        render.drawText(x+w/2,y+h/2,window.load_error,1)
+        render.drawText(x+w/2,y+h/2 - select(2,render.getTextSize(window.load_error))/2,window.load_error,1)
+        
+        window.reload_image.pos = Vector(w/2 - window.reload_image.size.x/2,h/2 - window.reload_image.size.y/2 + select(2,render.getTextSize(window.load_error)))
     else
-        render.setFilterMag(1)
-        render.setFilterMin(1)
+        --render.setFilterMag(1)
+        --render.setFilterMin(1)
         render.setColor(Color(0,0,0))
         render.drawRect(x+w/2-img_size/2,y-window.barheight/2+h/2-img_size/2,img_size,img_size)
         
@@ -94,8 +108,8 @@ app.add_render = function(window,app,x,y,w,h)
         render.setMaterial(window.cur_photo or computer.icon["picture_error"])
         render.drawTexturedRect(x+w/2-img_size/2,y-window.barheight/2+h/2-img_size/2,img_size,img_size)
         render.setMaterial()
-        render.setFilterMag(3)
-        render.setFilterMin(3)
+        --render.setFilterMag(3)
+        --render.setFilterMin(3)
     end
 end
     

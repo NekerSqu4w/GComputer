@@ -144,7 +144,7 @@ function Window:render(cursor, action)
             end
         end
     end
-
+    
     if self.dragging and self.drag.delta then
         self.pos = self.pos + self.drag.delta
     end

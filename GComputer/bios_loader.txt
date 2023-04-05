@@ -56,7 +56,7 @@ Powered by 'Farting Chipset'
         "icon16/application_form.png","icon16/chart_line_error.png","icon16/time.png","icon16/application_form_magnify.png",
         "icon16/ipod.png","icon16/script_error.png","icon16/computer_edit.png","icon16/folder.png","icon16/page_white_text.png",
         "icon16/images.png","icon16/picture_error.png","icon16/arrow_undo.png","icon16/arrow_redo.png","icon16/drive_user.png",
-        "icon16/user_gray.png"
+        "icon16/user_gray.png","icon16/script_gear.png","icon16/error.png"
     }
     --data.icon_to_load = require("lib/icon16.txt") //buged because other player doesn't as some icon
     data.icon_loaded = 0

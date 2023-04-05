@@ -31,7 +31,7 @@ app.reload_app_list = function(window,app)
     local unlist = {"gcomputer_startbar"}
     for id, capp in pairs(computer.created_app) do
         if unlist[capp.app_id] then continue end
-        window.end_task_btn[id] = SFUi.button(window, Vector(0,0), Vector(70, 20), "End Task", function(me)
+        window.end_task_btn[id] = SFUi.button(window, Vector(0,0), Vector(70, 20), computer.lang.query_word("task_manager.end_task").."", function(me)
             computer.GComputer_gui:removeComponent(me.linked_app)
         end)
         window.end_task_btn[id].id = "end_task"
@@ -70,6 +70,7 @@ end
 //use only if you need to draw another thing that not in SFUi lib
 //Like a simple rect, roundedbox or polygon etc..
 app.add_render = function(window,app,x,y,w,h)
+    window.title = computer.lang.query_word("task_manager.name")
     local task_usage = {
         ["Cpu"] = {us=computer.cpu.usage,max=computer.cpu.max,suffix="("..computer.cpu.usage.."/"..computer.cpu.max..")"},
         ["Ram"] = {us=computer.ram.usage,max=computer.ram.max,suffix="("..string.niceSize(computer.ram.usage).."/"..string.niceSize(computer.ram.max)..")"}
@@ -92,7 +93,7 @@ app.add_render = function(window,app,x,y,w,h)
     end        
 
     render.setColor(Color(255,255,255))
-    render.drawSimpleText(window.mins.x + 4 + 70 + (w/2 - 30),window.mins.y + 4 + 20,"Manage app:",0,1)
+    render.drawSimpleText(window.mins.x + 4 + 70 + (w/2 - 30),window.mins.y + 4 + 20,computer.lang.query_word("task_manager.manage_app")..":",0,1)
 
     if #computer.created_app == window.last_check_num then else
         app.reload_app_list(window,app)

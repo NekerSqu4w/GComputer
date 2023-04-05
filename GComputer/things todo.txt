@@ -1,7 +1,7 @@
 --[[
 
 # Fix todo
-- insert here
+- Fix app spawn
 
 # Make new ui components
 - Make tab menu

@@ -1,0 +1,45 @@
+local lang = {}
+lang.lang_name = "Hungarian"
+
+lang["%clock.name%"] = "Ora"
+lang["%clock.month.01%"] = "Januar"
+lang["%clock.month.02%"] = "Februar"
+lang["%clock.month.03%"] = "Marcius"
+lang["%clock.month.04%"] = "Aprilis"
+lang["%clock.month.05%"] = "Majus"
+lang["%clock.month.06%"] = "Junius"
+lang["%clock.month.07%"] = "Julius"
+lang["%clock.month.08%"] = "Augusztus"
+lang["%clock.month.09%"] = "Szeptember"
+lang["%clock.month.10%"] = "Oktober"
+lang["%clock.month.11%"] = "November"
+lang["%clock.month.12%"] = "December"
+lang["%clock.day.0%"] = "Hetfo"
+lang["%clock.day.1%"] = "Kedd"
+lang["%clock.day.2%"] = "Szerda"
+lang["%clock.day.3%"] = "Csutortok"
+lang["%clock.day.4%"] = "Pentek"
+lang["%clock.day.5%"] = "Szombat"
+lang["%clock.day.6%"] = "Vasarnap"
+
+lang["%dialog.information%"] = "Translated Soon"
+lang["%dialog.sure?%"] = "Translated Soon"
+lang["%dialog.yes%"] = "Igen"
+lang["%dialog.no%"] = "Nem"
+lang["%dialog.ok%"] = "Translated Soon"
+lang["%dialog.continue%"] = "Translated Soon"
+lang["%dialog.cancel%"] = "Translated Soon"
+
+lang["%start_menu.name%"] = "Asztal"
+
+lang["%task_manager.name%"] = "Feladatkezelo"
+lang["%task_manager.manage_app%"] = "Programok kezelese"
+lang["%task_manager.end_task%"] = "Feladat befejezese"
+
+lang["%theme_manager.name%"] = "Tema szemejreszabasa"
+lang["%theme_manager.change_background%"] = "Hatterkep megvaltoztatasa"
+lang["%theme_manager.change_theme%"] = "Tema megvaltoztatasa"
+
+lang["%dialog_popup.gc_will_restart%"] = "Translated Soon"
+
+return lang

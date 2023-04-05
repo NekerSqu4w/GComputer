@@ -1,6 +1,6 @@
 local app = {}
 
-app.title = "Your session"
+app.title = "Desktop"
 app.version = 1.0
 app.author = "Neker's Industry's"
 app.description = ""
@@ -40,6 +40,7 @@ end
 //use only if you need to draw another thing that not in SFUi lib
 //Like a simple rect, roundedbox or polygon etc..
 app.add_render = function(window,app,x,y,w,h)
+    window.title = computer.lang.query_word("start_menu.name")
     for id, btn in pairs(window.button) do
         btn.pos = Vector(10,id*25)
         btn.size = Vector(window.size.x-20,20)

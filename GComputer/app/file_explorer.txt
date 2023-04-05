@@ -30,25 +30,21 @@ app.reload_list = function(window,app)
     window.search_path.text = window.folder_history[window.folder_history_id]
 
     if window.folder_list then
-        for id, file in pairs(window.folder_list) do
-            window.folder_file[id] = SFUi.button(window, Vector(5,20 + 20), Vector(70, 20), file.name, function(me)
+        for id, file2 in pairs(window.folder_list) do
+            window.folder_file[id] = SFUi.button(window, Vector(5,20 + 20), Vector(70, 20), file2.name, function(me)
                 if me.file_info.type == "folder" then
-                    window.folder_path = window.folder_history[window.folder_history_id] .. file.name .. "/"
+                    window.folder_path = window.folder_history[window.folder_history_id] .. file2.name .. "/"
                     table.insert(window.folder_history,window.folder_path)
                     window.folder_history_id = #window.folder_history
                     app.reload_list(window,app)
                 else
-                    local openned_app = {}
-                    if me.is_custom_code then
-                        openned_app = me.open_app
-                    else
-                        openned_app = computer.open_app(me.open_app)
-                        computer.file_type.on_open(me,openned_app)
-                    end
+                    local openned_app = computer.open_app(me.open_app,me)
+                    computer.file_type.on_open(me,openned_app)
                 end
             end)
             window.folder_file[id].id = "folder_file"
-            window.folder_file[id].file_content = file.content
+            window.folder_file[id].file_content = file2.content
+            window.folder_file[id].modification_time = file.time(window.folder_history[window.folder_history_id] .. file2.name .. "/")
             window.folder_file[id].paint = function(self)
                 if self.hover then
                     render.setColor(Color(255,255,255,50))
@@ -71,7 +67,7 @@ app.reload_list = function(window,app)
                 if self.file_content then render.drawSimpleText(self.mins.x + self.size.x - 10 - 100, self.center.y, os.date("%d/%m/%Y %H:%M",self.modification_time), TEXT_ALIGN.RIGHT, TEXT_ALIGN.CENTER) end
                 if self.file_content then render.drawSimpleText(self.mins.x + self.size.x - 10, self.center.y, string.niceSize(#self.file_content), TEXT_ALIGN.RIGHT, TEXT_ALIGN.CENTER) end
             end
-            table.merge(window.folder_file[id],computer.file_type.load_from_type(file,window,window.folder_file[id]))
+            table.merge(window.folder_file[id],computer.file_type.load_from_type(file2,window,window.folder_file[id]))
         end
     end
 end
