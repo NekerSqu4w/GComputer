@@ -22,6 +22,7 @@
 --@include lib/console.txt
 --@include lib/file_type.txt
 --@include lib/lang.txt
+--@include lib/better_string.txt
 
 if CLIENT then
     //import ui lib
@@ -40,9 +41,10 @@ if CLIENT then
     another_render = require("lib/another_render.txt")
     local msl = require("lib/multiple_screen.txt")
     console = require("lib/console.txt")
+    string = require("lib/better_string.txt")
 
     computer = {}
-    computer.version = "1.01"
+    computer.version = "1.02"
     computer.settings = {}
     computer.material = {}
     computer.interface = {}
@@ -86,6 +88,7 @@ if CLIENT then
                 file.write("GComputer/desktop/"..app.title..".dat","//type 1\nopen " .. id)
             end
         end
+        file.write("GComputer/desktop/Test app.dat","//type 2\nreturn {}")
         file.write("GComputer/desktop/test folder/test file into folder.txt","Some data into a file :d")
         file.write("GComputer/desktop/test file.txt","Hello world, this is a test file")
     end
@@ -112,21 +115,40 @@ if CLIENT then
             file.write("GComputer/custom_background.txt",json.encode(computer.save_data.custom_background))
             console.log({Color(80,255,80),"Saving player configuration.."})
         end)
-
-        computer.save_data.desktop_file = load_folder_content("GComputer/desktop/*")
     end
 
-    function load_folder_content(path)
-        local file_, folder_ = file.find(path)
+    local smooth_file_loading = {}
+    --[[
+    timer.create("smooth_file_loader",0.01,0,function()
+        if smooth_file_loading[1] then
+            smooth_file_loading[1].exec(file.read(smooth_file_loading[1].path))
+            table.remove(smooth_file_loading,1)
+        end
+    end)
+    ]]
+    function smooth_file_loader(path,exec) table.insert(smooth_file_loading,{exec=exec,path=path}) end
 
+    function load_folder_content(path,status,on_finish)
+        local file_, folder_ = file.find(path)
         local folder_list = {}
+
         for id, name in pairs(folder_) do
             table.insert(folder_list,{type="folder",name=name})
         end
         for id, name in pairs(file_) do
-            table.insert(folder_list,{type="file",name=name,content=file.read(string.sub(path,0,#path-1) .. "" .. name)})
+            table.insert(folder_list,{type="file",file_path=string.replace(path,"*",""),name=name,content=file.read(string.replace(path,"*","") .. "/" .. name)})
+            
+            --[[
+            smooth_file_loader(string.sub(path,0,#path-1) .. "" .. name,function(data)
+                if type(status) == "function" then status(id,#file_) end
+
+                --if #smooth_file_loading == 0 then on_finish(folder_list) end
+            end)
+            ]]
         end
-        return folder_list
+
+        if type(status) == "function" then status(#file_,#file_) end
+        on_finish(folder_list)
     end
 
     function utcOffsetToRealtime(id)

@@ -66,6 +66,14 @@ local function load_from_type(file2,window)
             data.file_info = file2
             data.file_info.type = "photo"
         end
+        
+        //check for type of music
+        if string.endsWith(file2.name, ".mp3") then
+            data.app = computer.app["GComputer/app/audio_player.txt"]
+            data.open_app = "GComputer/app/audio_player.txt"
+            data.file_info = file2
+            data.file_info.type = "music"
+        end
     end
     return data
 end
@@ -77,6 +85,8 @@ local function on_open(from,cur_app)
         cur_app.folder_path = from.folder_path
     end
     if from.file_info.type == "file" then cur_app.file_info = from.file_info end
+    if from.file_info.type == "app" then cur_app.file_info = from.file_info end
+    if from.file_info.type == "music" then cur_app.file_info = from.file_info end
     if from.file_info.type == "photo" then cur_app.file_info = from.file_info end
 end
 

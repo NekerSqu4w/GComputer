@@ -12,7 +12,7 @@ function init()
     //set ui color and design
     ui.palette = {
         foreground = Color(255, 255, 255),
-        background = Color(50, 30, 30),
+        background = (theme.main_color/8):setA(255),
         hover = theme.main_color,
         component = (theme.main_color/2):setA(255),
         contrast = (theme.main_color/2):setA(255),
@@ -40,15 +40,7 @@ function init()
 
         if self.title != "" and #self.title > 0 then
             render.setColor(self.palette.foreground)
-            self.show_name = ""
-            for i=1, #self.title do
-                if render.getTextSize(self.show_name) > self.size.x-80 then
-                    self.show_name = self.show_name .. "..."
-                    break
-                end
-                self.show_name = self.show_name .. self.title[i]
-            end
-            render.drawSimpleText(self.mins.x + 5 + 12, self.mins.y, self.show_name, TEXT_ALIGN.LEFT, TEXT_ALIGN.TOP)
+            render.drawSimpleText(self.mins.x + 5 + 12, self.mins.y, string.trimLength(self.title,self.size.x-80), TEXT_ALIGN.LEFT, TEXT_ALIGN.TOP)
 
             render.setColor(Color(255,255,255))
             self.app.app_logo(self.app,self.mins.x + 1,self.mins.y + 1,self.barheight-2,self.barheight-2)
@@ -119,6 +111,17 @@ function init()
         
         render.setColor(usehint and self.palette.contrast or self.palette.foreground)
         render.drawSimpleText(self.mins.x + 10, self.center.y, (usehint and not self.hover) and self.trimmed.hint or self.trimmed.text, nil, TEXT_ALIGN.CENTER)
+    end
+    
+    function ui.slider.override_design(self)
+        render.setColor(self.palette.component)
+        render.drawRect(self.mins.x-1,self.mins.y-1,self.size.x+2,self.size.y+2)
+
+        render.setColor(self.palette.highlight)
+        render.drawRect(self.mins.x,self.mins.y,self.valuesize,self.size.y)
+
+        render.setColor((self.hover or self.action.held) and self.palette.contrast or self.palette.component)
+        render.drawFilledCircle(self.mins.x + self.valuesize, self.center.y, self.size.y)
     end
 
     return theme

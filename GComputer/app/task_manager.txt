@@ -32,6 +32,7 @@ app.reload_app_list = function(window,app)
     for id, capp in pairs(computer.created_app) do
         if unlist[capp.app_id] then continue end
         window.end_task_btn[id] = SFUi.button(window, Vector(0,0), Vector(70, 20), computer.lang.query_word("task_manager.end_task").."", function(me)
+            if type(me.linked_app.app.on_close) == "function" then me.linked_app.app.on_close(me.linked_app,me.linked_app.app) end
             computer.GComputer_gui:removeComponent(me.linked_app)
         end)
         window.end_task_btn[id].id = "end_task"

@@ -25,50 +25,49 @@ app.reload_list = function(window,app)
     end
     window.folder_file = {}
     window.folder_list = {}
+    window.is_loading_folder = true
+    window.to_load_current = 0
+    window.to_load_total = 0
 
-    if window.folder_history[window.folder_history_id] then window.folder_list = load_folder_content(window.folder_history[window.folder_history_id] .. "*") end
-    window.search_path.text = window.folder_history[window.folder_history_id]
+    if window.folder_history[window.folder_history_id] then
+        window.search_path.text = window.folder_history[window.folder_history_id]
+        load_folder_content(window.folder_history[window.folder_history_id] .. "*", function(cur,end_) window.to_load_current = cur window.to_load_total = end_ end, function(list)
+            //load all on finish
+            window.folder_list = list
 
-    if window.folder_list then
-        for id, file2 in pairs(window.folder_list) do
-            window.folder_file[id] = SFUi.button(window, Vector(5,20 + 20), Vector(70, 20), file2.name, function(me)
-                if me.file_info.type == "folder" then
-                    window.folder_path = window.folder_history[window.folder_history_id] .. file2.name .. "/"
-                    table.insert(window.folder_history,window.folder_path)
-                    window.folder_history_id = #window.folder_history
-                    app.reload_list(window,app)
-                else
-                    local openned_app = computer.open_app(me.open_app,me)
-                    computer.file_type.on_open(me,openned_app)
-                end
-            end)
-            window.folder_file[id].id = "folder_file"
-            window.folder_file[id].file_content = file2.content
-            window.folder_file[id].modification_time = file.time(window.folder_history[window.folder_history_id] .. file2.name .. "/")
-            window.folder_file[id].paint = function(self)
-                if self.hover then
-                    render.setColor(Color(255,255,255,50))
-                    render.drawRect(self.mins.x, self.mins.y, self.size.x, self.size.y)
-                end
+            if window.folder_list then
+                for id, file2 in pairs(window.folder_list) do
+                    window.folder_file[id] = SFUi.button(window, Vector(5,20 + 20), Vector(70, 20), file2.name, function(me)
+                        if me.file_info.type == "folder" then
+                            window.folder_path = window.folder_history[window.folder_history_id] .. file2.name .. "/"
+                            table.insert(window.folder_history,window.folder_path)
+                            window.folder_history_id = #window.folder_history
+                            app.reload_list(window,app)
+                        else
+                            local openned_app = computer.open_app(me.open_app,me)
+                            if openned_app then computer.file_type.on_open(me,openned_app) end
+                        end
+                    end)
+                    window.folder_file[id].id = "folder_file"
+                    window.folder_file[id].file_content = file2.content
+                    window.folder_file[id].modification_time = file.time(window.folder_history[window.folder_history_id] .. file2.name .. "/")
+                    window.folder_file[id].paint = function(self)
+                        if self.hover then
+                            render.setColor(Color(255,255,255,50))
+                            render.drawRect(self.mins.x, self.mins.y, self.size.x, self.size.y)
+                        end
+        
+                        if type(self.app) == "table" then self.app.app_logo(self.app,self.mins.x+2,self.mins.y+2,self.size.y-4,self.size.y-4) end
+                        render.setColor(self.action.held and Color(0,0,0) or self.palette.foreground)
 
-                if type(self.app) == "table" then self.app.app_logo(self.app,self.mins.x+2,self.mins.y+2,self.size.y-4,self.size.y-4) end
-                render.setColor(self.action.held and Color(0,0,0) or self.palette.foreground)
-
-                self.show_name = ""
-                for i=1, #self.text do
-                    if render.getTextSize(self.show_name) > self.size.x-300 then
-                        self.show_name = self.show_name .. "..."
-                        break
+                        render.drawSimpleText(self.mins.x + 30, self.center.y, string.trimLength(self.text,self.size.x-300), TEXT_ALIGN.LEFT, TEXT_ALIGN.CENTER)
+                        if self.file_content then render.drawSimpleText(self.mins.x + self.size.x - 10 - 100, self.center.y, os.date("%d/%m/%Y %H:%M",self.modification_time), TEXT_ALIGN.RIGHT, TEXT_ALIGN.CENTER) end
+                        if self.file_content then render.drawSimpleText(self.mins.x + self.size.x - 10, self.center.y,string.niceSize(#self.file_content), TEXT_ALIGN.RIGHT, TEXT_ALIGN.CENTER) end
                     end
-                    self.show_name = self.show_name .. self.text[i]
+                    table.merge(window.folder_file[id],computer.file_type.load_from_type(file2,window,window.folder_file[id]))
                 end
-
-                render.drawSimpleText(self.mins.x + 30, self.center.y, self.show_name, TEXT_ALIGN.LEFT, TEXT_ALIGN.CENTER)
-                if self.file_content then render.drawSimpleText(self.mins.x + self.size.x - 10 - 100, self.center.y, os.date("%d/%m/%Y %H:%M",self.modification_time), TEXT_ALIGN.RIGHT, TEXT_ALIGN.CENTER) end
-                if self.file_content then render.drawSimpleText(self.mins.x + self.size.x - 10, self.center.y, string.niceSize(#self.file_content), TEXT_ALIGN.RIGHT, TEXT_ALIGN.CENTER) end
             end
-            table.merge(window.folder_file[id],computer.file_type.load_from_type(file2,window,window.folder_file[id]))
-        end
+        end)
     end
 end
 
@@ -165,14 +164,21 @@ app.add_render = function(window,app,x,y,w,h)
         render.setColor(Color(255,255,255))
         window.search_path.pos = Vector(w-window.search_path.size.x-5,15+5)
         window.search_path.size.x = w-40-20
+        
+        if window.is_loading_folder and window.to_load_current < window.to_load_total then
+            render.drawSimpleText(x + w/2,y + 45,"Work in progress..",1)
+            render.drawSimpleText(x + w/2,y + 60, window.to_load_current .. "/" .. window.to_load_total,1)
+        end
 
         if window.folder_file then
             for id, btn in pairs(window.folder_file) do
                 btn.pos = Vector(5,20 + id * btn.size.y+2)
                 btn.size.x = w-10
                 
-                if 20 + id * btn.size.y+2 > window.size.y-30 then
-                    break
+                if 20 + id * btn.size.y+2 > window.size.y-35 then
+                    btn.visible = false
+                else
+                    btn.visible = true
                 end
             end
         end

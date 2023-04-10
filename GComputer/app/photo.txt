@@ -17,6 +17,9 @@ app.resizable = true
 app.multiple_open = true
 app.app_id = "gcomputer_file"
 
+--@include ../lib/base64img.txt
+app.base64img = require("../lib/base64img.txt")
+
 app.on_load = function(window,app)
     window.reload_image = SFUi.button(window, Vector(0,0), Vector(70, 20), "Reload", function(me) window.has_set_img = false end)
     window.reload_image.paint = function(self)
@@ -55,28 +58,18 @@ app.add_render = function(window,app,x,y,w,h)
         window.title = "Photo | " .. window.file_info.name
 
         if window.has_set_img == false then
-            local base64img = ""
-            local data_type = ""
+            window.cur_photo = material.create("UnlitGeneric")
+            local base64data = app.base64img.decode(window.file_info.name,window.file_info.content)
 
-            if string.endsWith(window.file_info.name, ".png") then
-                data_type = "data:image/png;base64,"
-            elseif string.endsWith(window.file_info.name, ".jpg") then
-                data_type = "data:image/jpg;base64,"
-            elseif string.endsWith(window.file_info.name, ".jpeg") then 
-                data_type = "data:image/jpeg;base64,"
-            end
-
-            base64img = data_type .. http.base64Encode(window.file_info.content)
-            if #base64img > convar.getInt("sf_render_maxdatamaterialsize") then
-                window.load_error = "Cannot load picture\nTexture Data too long!\n\nIf you wanna see it you can set\n'sf_render_maxdatamaterialsize "..(math.floor((#base64img+10000)/10000)*10000).."'\ninto console and press button to reload image."
+            if base64data.error then
+                window.load_error = base64data.error_msg .. " and press button to reload image."
                 window.reload_image.visible = true
             else
-                window.cur_photo = material.create("UnlitGeneric")
-                window.cur_photo:setTextureURL("$basetexture",base64img,function(_,_,w,h,layout)
+                window.cur_photo:setTextureURL("$basetexture",base64data.data,function(_,_,w,h,layout)
                     //fix size to 1024x1024 depending of proportion
-                    local fw, fh = w, h
+                    local fw, fh = w or 512, h or 512
                     local scl = 1
-
+    
                     scl = 1024 / fh
                     if fh < fw then scl = 1024 / fw end
                     fw = fw * scl

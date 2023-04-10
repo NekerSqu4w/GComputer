@@ -2,8 +2,9 @@
 
 # Fix todo
 - Fix app spawn
+- Also fix optimisation
 
 # Make new ui components
-- Make tab menu
+-
 
 ]]

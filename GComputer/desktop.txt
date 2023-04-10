@@ -21,6 +21,7 @@ function computer.open_app(app_path,me)
     //if doesn't exist create it
     if current_app_metadata and already_created == false then
         local new_app = SFUi.window(current_app_metadata.pos, current_app_metadata.size, current_app_metadata.title, true, false, function(me)
+            if type(current_app_metadata.on_close) == "function" then current_app_metadata.on_close(me,me.app) end
             computer.GComputer_gui:removeComponent(me)
         end)
         new_app.paint = function() end
@@ -32,13 +33,13 @@ function computer.open_app(app_path,me)
         new_app.maximum_size = current_app_metadata.maximum_size
         new_app.draggable = current_app_metadata.draggable
         new_app.closehides = show_closebtn
-        new_app.draw_on_top = current_app_metadata.add_render
+        if type(current_app_metadata.add_render) == "function" then new_app.draw_on_top = current_app_metadata.add_render end
         new_app.app = current_app_metadata
         new_app.lastclicked = timer.realtime()
 
         //move app to not be on another app
         
-        current_app_metadata.on_load(new_app,new_app.app)
+        if type(current_app_metadata.on_load) == "function" then current_app_metadata.on_load(new_app,new_app.app) end
         computer.GComputer_gui:addComponent(new_app)
 
         timer.simple(0.1,function()
@@ -109,7 +110,7 @@ function reload_desktop_app()
         computer.desktop_app[id] = SFUi.button(computer.appbar_win, Vector(0,0), Vector(100, 80), "", function(me)
             if me.can_use then
                 local openned_app = computer.open_app(me.open_app,me)
-                computer.file_type.on_open(me,openned_app)
+                if openned_app then computer.file_type.on_open(me,openned_app) end
             end
         end)
         computer.desktop_app[id].id = "desktop_app"
@@ -229,7 +230,11 @@ function onInit(computer)
 
     computer.desktop_app = {}
     computer.taskbar_app = {}
-    reload_desktop_app()
+
+    load_folder_content("GComputer/desktop/*",nil,function(list)
+        computer.save_data.desktop_file = list
+        reload_desktop_app()
+    end)
     
     for id, script in pairs(computer.dialog_popup) do
         script.init()
@@ -280,13 +285,16 @@ function on_render(computer,data,w,h)
         
         //dont open app when a menu is pressed
         local can_open_app = true
-        for id, app in pairs(computer.created_app) do
-            if app.hover then
-                can_open_app = false
+        local app_show = true
+        for id, app2 in pairs(computer.created_app) do
+            if app2.hover then can_open_app = false end
+            if app.pos:withinAABox(app2.pos, app2.pos + app2.size - app.size) then
+                app_show = false
                 break
             end
         end
         app.can_use = can_open_app
+        app.visible = app_show
     end
 
     render.setFont(computer.font.bios_font)

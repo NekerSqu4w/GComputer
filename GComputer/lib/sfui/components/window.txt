@@ -34,7 +34,7 @@ function Window:render(cursor, action)
     if not self.can_maximise then self.can_maximise = true end
     if not self.is_maximised then self.is_maximised = 0 end
 
-    if cursor then
+    if cursor and self.hover then
         self.resize_hover = cursor:withinAABox(self.maxs - Vector(self.barheight,self.barheight), self.maxs)
         self.maximise_hover = cursor:withinAABox(Vector(self.mins.x + self.size.x - self.barheight*2,self.mins.y), Vector(self.mins.x + self.size.x - self.barheight*2,self.mins.y) + Vector(self.barheight,self.barheight))
     end

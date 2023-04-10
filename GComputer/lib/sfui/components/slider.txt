@@ -18,7 +18,7 @@ function Slider:updateHover(cursor)
 end
 
 function Slider:render(cursor, action)
-    local valuesize = math.remap(self.value, self.min, self.max, 0, self.size.x)
+    self.valuesize = math.remap(self.value, self.min, self.max, 0, self.size.x)
 
     if type(self.paint) == "function" then
         self.paint(self)
@@ -36,25 +36,34 @@ function Slider:render(cursor, action)
             render.drawRectOutline(self.mins.x, self.mins.y, self.size.x, self.size.y)
         
             render.setColor((self.hover or self.action.held) and self.palette.contrast or self.palette.component)
-            render.drawFilledCircle(self.mins.x + valuesize, self.center.y, self.size.y)
+            render.drawFilledCircle(self.mins.x + self.valuesize, self.center.y, self.size.y)
         end
     end
 
     if cursor and self.drag.delta then
-        local value = math.clamp(math.remap(cursor.x, self.mins.x, self.maxs.x, self.min, self.max), self.min, self.max)  
+        self.hold = true
+        self.has_send_callback = false
+        local value = math.clamp(math.remap(cursor.x, self.mins.x, self.maxs.x, self.min, self.max), self.min, self.max)
         if self.snap then
             value = value - (value % self.snap)
         end
-        if value ~= self.value then
-            self.value = value
+        self.value = value
 
-            if self.callback then
-                self.callback(self.value)
-            end   
+        self.show_value = tostring(math.round(self.value, 1))
+        if type(self.custom_value_text) == "string" then
+            self.show_value = self.custom_value_text
         end
 
         render.setColor(self.palette.foreground)
-        render.drawSimpleText(self.mins.x + valuesize, self.center.y + self.size.y, tostring(math.round(self.value, 1)),TEXT_ALIGN.CENTER, TEXT_ALIGN.TOP)
+        render.drawSimpleText(self.mins.x + self.valuesize, self.center.y + self.size.y, self.show_value,TEXT_ALIGN.CENTER, TEXT_ALIGN.TOP)
+    else
+        self.hold = false
+        if self.has_send_callback == false then
+            if self.callback then
+                self.callback(self.value)
+                self.has_send_callback = true
+            end
+        end
     end
 
     SFUi.component.render(self, cursor, action)
