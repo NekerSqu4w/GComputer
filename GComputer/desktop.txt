@@ -1,4 +1,4 @@
---@includedir app
+--@includedir sys_app
 --@includedir dialog_popup
 
 function computer.open_app(app_path,me)
@@ -116,7 +116,7 @@ function reload_desktop_app()
         computer.desktop_app[id].id = "desktop_app"
         computer.desktop_app[id].id_name = file.name
         computer.desktop_app[id].paint = function(self)
-            if type(self.app) == "table" then self.app.app_logo(app,self.mins.x + self.size.x/2 - self.size.y/2 + 20,self.mins.y+20,self.size.y-40,self.size.y-40) end
+            if type(self.app) == "table" and type(self.app.app_logo) == "function" then self.app.app_logo(app,self.mins.x + self.size.x/2 - self.size.y/2 + 20,self.mins.y+20,self.size.y-40,self.size.y-40) end
 
             self.show_name = ""
             self.line = ""
@@ -153,7 +153,7 @@ end
 
 function onInit(computer)
     local data = {}
-    computer.app = requiredir("app")
+    computer.app = requiredir("sys_app")
     computer.dialog_popup = requiredir("dialog_popup")
     start_saving_loop()
 
@@ -171,7 +171,7 @@ function onInit(computer)
                 computer.GComputer_gui:removeComponent(computer.start_bar)
                 computer.start_bar = nil
             else
-                computer.start_bar = computer.open_app("GComputer/app/start_bar.txt")
+                computer.start_bar = computer.open_app("GComputer/sys_app/start_bar.txt")
             end
         end
     end)
@@ -195,13 +195,13 @@ function onInit(computer)
             render.drawRect(self.mins.x, self.mins.y, self.size.x, self.size.y)
         end
             
-        local startbar_metadata = computer.app["GComputer/app/start_bar.txt"]
+        local startbar_metadata = computer.app["GComputer/sys_app/start_bar.txt"]
         startbar_metadata.app_logo(startbar_metadata,self.mins.x+5,self.mins.y+5,self.size.x-10,self.size.y-10)
     end
 
     computer.open_clock = SFUi.button(computer.appbar_win,Vector(0, 0), Vector(120, 45), "",function(me)
         if me.can_use then
-            computer.open_app("GComputer/app/clock.txt")
+            computer.open_app("GComputer/sys_app/clock.txt")
         end
     end)
     computer.open_clock.paint = function(self)local can_open_app = true

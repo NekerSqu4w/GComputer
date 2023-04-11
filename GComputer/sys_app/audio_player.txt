@@ -138,7 +138,7 @@ app.add_render = function(window,app,x,y,w,h)
         local length = 100
         for i=1, length do
             window.smoothFFT[i] = math.lerp(timer.frametime()*10,window.smoothFFT[i] or 5,5 + (window.soundFFT[i] or 0) * (h-45))
-            render.setColor(Color(100 - (window.smoothFFT[i]/h) * 100,1,1):hsvToRGB())
+            render.setColor(Color(100 - (window.smoothFFT[i]/h) * 150,1,1):hsvToRGB())
             render.drawRect(x - (1/length) * w + (i/length) * (w + (1/length) * (w/2)),y + h - 80 - window.smoothFFT[i],(1/length) * (w/2),window.smoothFFT[i])
         end
         

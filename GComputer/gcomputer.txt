@@ -3,7 +3,7 @@
 --@model models/props_lab/harddrive02.mdl
 
 //by - Luiz thx to him
---@include lib/sfui/sfui.lua
+--@include lib/sfui/sfui.txt
 --@include lib/sfui/components/component.txt
 --@include lib/sfui/components/window.txt
 --@include lib/sfui/components/checkbox.txt
@@ -14,6 +14,7 @@
 --@include lib/sfui/components/list.txt
 --@include lib/sfui/components/radio.txt
 --@include lib/sfui/components/textbox.txt
+--@include lib/sfui/components/tabber.txt
 
 --@includedir theme
 
@@ -26,7 +27,7 @@
 
 if CLIENT then
     //import ui lib
-    require("lib/sfui/sfui.lua")
+    require("lib/sfui/sfui.txt")
     require("lib/sfui/components/component.txt")
     require("lib/sfui/components/window.txt")
     require("lib/sfui/components/button.txt")
@@ -37,6 +38,7 @@ if CLIENT then
     require("lib/sfui/components/list.txt")
     require("lib/sfui/components/radio.txt")
     require("lib/sfui/components/textbox.txt")
+    require("lib/sfui/components/tabber.txt")
 
     another_render = require("lib/another_render.txt")
     local msl = require("lib/multiple_screen.txt")
@@ -44,7 +46,7 @@ if CLIENT then
     string = require("lib/better_string.txt")
 
     computer = {}
-    computer.version = "1.02"
+    computer.version = "1.03"
     computer.settings = {}
     computer.material = {}
     computer.interface = {}
@@ -85,12 +87,9 @@ if CLIENT then
         for id, app in pairs(computer.app) do
             if remove[app.app_id] then
             else
-                file.write("GComputer/desktop/"..app.title..".dat","//type 1\nopen " .. id)
+                file.write("GComputer/desktop/"..app.title..".dat","SHORTCUT\n" .. id)
             end
         end
-        file.write("GComputer/desktop/Test app.dat","//type 2\nreturn {}")
-        file.write("GComputer/desktop/test folder/test file into folder.txt","Some data into a file :d")
-        file.write("GComputer/desktop/test file.txt","Hello world, this is a test file")
     end
 
     function start_saving_loop()
@@ -109,6 +108,7 @@ if CLIENT then
         end
         
         file.createDir("GComputer/")
+        if not file.exists("GComputer/appdata") then file.createDir("GComputer/appdata/") end
         if not file.exists("GComputer/desktop") then computer.create_default_data() end
         timer.create("startsaving",15,0,function()
             file.write("GComputer/settings.txt",json.encode(computer.save_data.settings))

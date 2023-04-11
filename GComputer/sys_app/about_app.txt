@@ -21,22 +21,24 @@ app.selected_app = nil
 
 app.on_load = function(window,app)
     window.format_list = {}
+    window.format_list2 = {}
     local i = 0
     for path, data in pairs(computer.app) do
         i = i + 1
-        window.format_list[i] = string.replace(path,"GComputer/","")
+        window.format_list[i] = path:replace("GComputer/","")
+        window.format_list2[i] = path
     end
     
     SFUi.list(window, Vector(10, 35), Vector(180-20, app.size.y - 20 - 30), "Select an app:", window.format_list, function(choose_app)
-        window.selected_app = computer.app["GComputer/"..window.format_list[choose_app]]
-        
+        window.selected_app = computer.app[window.format_list2[choose_app]]
+
         window.info_label[1].content = {computer.current_theme.main_color,"Real id: ",Color(255,255,255),window.selected_app.app_id}
         window.info_label[2].content = {computer.current_theme.main_color,"Title: ",Color(255,255,255),window.selected_app.title}
         window.info_label[3].content = {computer.current_theme.main_color,"Version: ",Color(255,255,255),window.selected_app.version}
         window.info_label[4].content = {computer.current_theme.main_color,"Author: ",Color(255,255,255),window.selected_app.author}
         window.info_label[5].content = {computer.current_theme.main_color,"Is draggable: ",Color(255,255,255),window.selected_app.draggable}
         window.info_label[5].content = {computer.current_theme.main_color,"Is resizable: ",Color(255,255,255),window.selected_app.resizable}
-        window.info_label[6].content = {computer.current_theme.main_color,"Has mulitple instance: ",Color(255,255,255),window.selected_app.multiple_open}
+        window.info_label[6].content = {computer.current_theme.main_color,"Has mulitple open: ",Color(255,255,255),window.selected_app.multiple_open}
         window.info_label[7].content = {computer.current_theme.main_color,"Can be close: ",Color(255,255,255),window.selected_app.close_btn}
         window.info_label[8].content = {computer.current_theme.main_color,"Metadata size: ",Color(255,255,255),string.niceSize(#table.toString(window.selected_app))}    
 
